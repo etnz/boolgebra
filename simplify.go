@@ -11,6 +11,7 @@ func Simplify(X Expression) Expression {
 	X = expand(X)
 	X = localSimplify(X)
 	X = globalSimplify(X)
+
 	return X
 }
 
@@ -53,8 +54,10 @@ func globalSimplify(X Expression) Expression {
 				// do the full simplification in this sub expression
 				div = localSimplify(div)
 				div = globalSimplify(div)
+
 				// and rebuild the expression, now
 				// X = m and div  or Mod
+
 				q, _ := divmod(mod, expand(Not(m)))
 				if q != False {
 					X = localSimplify(expand(Or(div, mod)))

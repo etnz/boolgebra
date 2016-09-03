@@ -39,6 +39,7 @@ func anyOf(accept func(i uint64) bool, terms ...Expression) Expression {
 	return Or(subs...)
 }
 
+// AtMost retuns an expression that is true if and only if at most 'i' terms are True.
 func AtMost(i int, terms ...Expression) Expression {
 	return anyOf(func(j uint64) bool {
 		return popcount(j) <= byte(i)
@@ -46,12 +47,15 @@ func AtMost(i int, terms ...Expression) Expression {
 
 }
 
+// AtLeast retuns an expression that is true if and only if at least 'i' terms are True.
 func AtLeast(i int, terms ...Expression) Expression {
 	return anyOf(func(j uint64) bool {
 		return popcount(j) >= byte(i)
 	}, terms...)
 
 }
+
+// Exactly retuns an expression that is true if and only if exactly 'i' terms are True.
 func Exactly(i int, terms ...Expression) Expression {
 	return anyOf(func(j uint64) bool {
 		return popcount(j) == byte(i)
@@ -59,13 +63,15 @@ func Exactly(i int, terms ...Expression) Expression {
 
 }
 
-const N = 8
+// one important tool is to count bit == 1 in a number
+// for efficiency purpose we don't want to scan every single bit, instead we want to scan each bytes, and have
+// remember the bit count for each possible bytes (there are 256 only !)
 
-// contains a dict for bytes -> popcount
+// bytePopcounts act as a dict for bytes -> popcount
 // used to count population of larger ints
-var bytePopcounts = [1 << N]byte{0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8}
+var bytePopcounts = [1 << 8]byte{0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8}
 
-// to compute the magic const above
+// to compute the magic const above, you can use the following code,
 // func init() {
 // 	for i := range bytePopcounts {
 // 		var n byte
@@ -81,12 +87,12 @@ var bytePopcounts = [1 << N]byte{0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
 
 // popcount any uint64: return the number of one set
 func popcount(x uint64) (n byte) {
-	return bytePopcounts[byte(x>>(0*N))] +
-		bytePopcounts[byte(x>>(1*N))] +
-		bytePopcounts[byte(x>>(2*N))] +
-		bytePopcounts[byte(x>>(3*N))] +
-		bytePopcounts[byte(x>>(4*N))] +
-		bytePopcounts[byte(x>>(5*N))] +
-		bytePopcounts[byte(x>>(6*N))] +
-		bytePopcounts[byte(x>>(7*N))]
+	return bytePopcounts[byte(x>>(0*8))] +
+		bytePopcounts[byte(x>>(1*8))] +
+		bytePopcounts[byte(x>>(2*8))] +
+		bytePopcounts[byte(x>>(3*8))] +
+		bytePopcounts[byte(x>>(4*8))] +
+		bytePopcounts[byte(x>>(5*8))] +
+		bytePopcounts[byte(x>>(6*8))] +
+		bytePopcounts[byte(x>>(7*8))]
 }

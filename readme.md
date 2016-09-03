@@ -1,4 +1,4 @@
-#boolgebra [![Travis](https://travis-ci.org/etnz/boolgebra.svg?branch=master)](https://travis-ci.org/etnz/boolgebra?branch=master) [![GoDoc](https://godoc.org/github.com/etnz/boolgebra?status.svg)](https://godoc.org/github.com/etnz/boolgebra)
+#boolgebra [![Travis](https://travis-ci.org/etnz/boolgebra.svg?branch=master)](https://travis-ci.org/etnz/boolgebra) [![GoDoc](https://godoc.org/github.com/etnz/boolgebra?status.svg)](https://godoc.org/github.com/etnz/boolgebra)
 
 Package boolgebra provide basic boolean algebra operations.
 

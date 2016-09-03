@@ -38,6 +38,8 @@
 //      Or(x, x) -> x
 //
 //
+// The Simplify function just try to match the left hand side of those simplification rules, and of course applying it.
+// When all rules have been matched, it will try to transform the expression so that new simplification can be matched, then.
 package boolgebra
 
 import "fmt"

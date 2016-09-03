@@ -20,14 +20,14 @@ func ExampleSimplify_smullyan1() {
 	//'a' answered yes.
 
 	// like always with Knights and Knaves,
-	// if 'a' is a knight what Q1 is true,
+	// if 'a' is a knight, then Q1 is true obviouly,
 	// if not 'a' is a knight then Q1 is not true
 	//
 	//     A_is_a_knight     Q1
 	//     true              true
 	//     false             false
 	//
-	// therefore A_is_a_knight  <=>   Q1 is true
+	// therefore A_is_a_knight  ==   Q1
 	Fact1 := Eq(A_is_a_knight, Q1)
 
 	// but 'a' also said that 'b' was a Knaves:
@@ -58,6 +58,7 @@ func ExampleSimplify_smullyan2() {
 	Fact1 := Exactly(1, A_is_Sorcerer, B_is_Sorcerer, C_is_Sorcerer)
 
 	// The hero asked 'a': are you a Sorcerer ? 'a' answered, yes
+	// as always with knights and knaves, we can say that:
 	Fact2 := Eq(A_is_a_knight, A_is_Sorcerer)
 
 	// He asked the same question to 'b'
@@ -81,15 +82,16 @@ func ExampleSimplify_smullyan3() {
 	// The hero finds two guies 'a' and 'b'
 	A_is_a_knight := ID("A is a Knight")
 	B_is_a_knight := ID("B is a Knight")
-	// one of them is a Sorcerer
+	// exactly one of them is a Sorcerer
 	A_is_Sorcerer := ID("A is a Sorcerer")
 	B_is_Sorcerer := ID("B is a Sorcerer")
 	Fact1 := Exactly(1, A_is_Sorcerer, B_is_Sorcerer)
 
-	// he asks 'a' is the sorcerer a knight?
+	// he asks 'a': is the sorcerer a knight?
 
 	Sorcerer_is_a_knight := ID("The Sorcerer is a Knight")
-	// This assertion implies that beeing a sorcerer implies beeing a knight
+
+	// Knowing that the sorcerer is a knight means that beeing a sorcerer => beeing a knight.
 	Fact2 := Impl(Sorcerer_is_a_knight, Impl(A_is_Sorcerer, A_is_a_knight))
 	Fact3 := Impl(Sorcerer_is_a_knight, Impl(B_is_Sorcerer, B_is_a_knight))
 	Fact4 := Impl(Not(Sorcerer_is_a_knight), Impl(A_is_Sorcerer, Not(A_is_a_knight)))
