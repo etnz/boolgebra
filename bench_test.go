@@ -403,21 +403,27 @@ func BenchmarkSimplify_TypeAnd_TypeOr_TypeAnd_TypeNot_AisaKnight_TypeNot_TypeAnd
 		Simplify(x)
 	}
 }
-func BenchmarkSimplify_TypeAnd_TypeOr_TypeAnd_TypeNot_AisaSorcerer_TypeNot_BisaSorcerer_CisaSorcerer_TypeAnd_TypeNot_AisaSorcerer_BisaSorcerer_TypeNot_CisaSorcerer_TypeAnd_AisaSorcerer_TypeNot_BisaSorcerer_TypeNot_CisaSorcerer_TypeOr_TypeAnd_TypeNot_AisaKnight_TypeNot_AisaSorcerer_TypeAnd_AisaKnight_AisaSorcerer_TypeOr_TypeAnd_TypeNot_BisaKnight_TypeNot_BisaSorcerer_TypeAnd_BisaKnight_BisaSorcerer_TypeOr_TypeAnd_TypeNot_CisaKnight_TypeNot_TypeOr_TypeAnd_TypeNot_AisaKnight_TypeNot_BisaKnight_TypeNot_CisaKnight_TypeAnd_TypeNot_AisaKnight_TypeNot_BisaKnight_CisaKnight_TypeAnd_TypeNot_AisaKnight_BisaKnight_TypeNot_CisaKnight_TypeAnd_AisaKnight_TypeNot_BisaKnight_TypeNot_CisaKnight_TypeAnd_CisaKnight_TypeOr_TypeAnd_TypeNot_AisaKnight_TypeNot_BisaKnight_TypeNot_CisaKnight_TypeAnd_TypeNot_AisaKnight_TypeNot_BisaKnight_CisaKnight_TypeAnd_TypeNot_AisaKnight_BisaKnight_TypeNot_CisaKnight_TypeAnd_AisaKnight_TypeNot_BisaKnight_TypeNot_CisaKnight(b *testing.B) {
+
+// this one generated an "identifier too long" in go test 1.1
+func BenchmarkSimplify_IdentifiertooLong(b *testing.B) {
 	x := And(Or(And(Not(ID("A is a Sorcerer")), Not(ID("B is a Sorcerer")), ID("C is a Sorcerer")), And(Not(ID("A is a Sorcerer")), ID("B is a Sorcerer"), Not(ID("C is a Sorcerer"))), And(ID("A is a Sorcerer"), Not(ID("B is a Sorcerer")), Not(ID("C is a Sorcerer")))), Or(And(Not(ID("A is a Knight")), Not(ID("A is a Sorcerer"))), And(ID("A is a Knight"), ID("A is a Sorcerer"))), Or(And(Not(ID("B is a Knight")), Not(ID("B is a Sorcerer"))), And(ID("B is a Knight"), ID("B is a Sorcerer"))), Or(And(Not(ID("C is a Knight")), Not(Or(And(Not(ID("A is a Knight")), Not(ID("B is a Knight")), Not(ID("C is a Knight"))), And(Not(ID("A is a Knight")), Not(ID("B is a Knight")), ID("C is a Knight")), And(Not(ID("A is a Knight")), ID("B is a Knight"), Not(ID("C is a Knight"))), And(ID("A is a Knight"), Not(ID("B is a Knight")), Not(ID("C is a Knight")))))), And(ID("C is a Knight"), Or(And(Not(ID("A is a Knight")), Not(ID("B is a Knight")), Not(ID("C is a Knight"))), And(Not(ID("A is a Knight")), Not(ID("B is a Knight")), ID("C is a Knight")), And(Not(ID("A is a Knight")), ID("B is a Knight"), Not(ID("C is a Knight"))), And(ID("A is a Knight"), Not(ID("B is a Knight")), Not(ID("C is a Knight")))))))
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		Simplify(x)
 	}
 }
-func BenchmarkSimplify_TypeAnd_TypeAnd_TypeOr_TypeAnd_TypeNot_AisaSorcerer_BisaSorcerer_TypeAnd_AisaSorcerer_TypeNot_BisaSorcerer_TypeOr_TypeNot_TheSorcererisaKnight_TypeOr_TypeNot_AisaSorcerer_AisaKnight_TypeOr_TypeNot_TheSorcererisaKnight_TypeOr_TypeNot_BisaSorcerer_BisaKnight_TypeOr_TypeNot_TypeNot_TheSorcererisaKnight_TypeOr_TypeNot_AisaSorcerer_TypeNot_AisaKnight_TypeOr_TypeNot_TypeNot_TheSorcererisaKnight_TypeOr_TypeNot_BisaSorcerer_TypeNot_BisaKnight_TypeOr_TypeAnd_TypeNot_AisaKnight_TypeNot_TheSorcererisaKnight_TypeAnd_AisaKnight_TheSorcererisaKnight(b *testing.B) {
+
+// this one generated an "identifier too long" in go test 1.1
+func BenchmarkSimplify_TooLong2(b *testing.B) {
 	x := And(And(Or(And(Not(ID("A is a Sorcerer")), ID("B is a Sorcerer")), And(ID("A is a Sorcerer"), Not(ID("B is a Sorcerer")))), Or(Not(ID("The Sorcerer is a Knight")), Or(Not(ID("A is a Sorcerer")), ID("A is a Knight"))), Or(Not(ID("The Sorcerer is a Knight")), Or(Not(ID("B is a Sorcerer")), ID("B is a Knight"))), Or(Not(Not(ID("The Sorcerer is a Knight"))), Or(Not(ID("A is a Sorcerer")), Not(ID("A is a Knight")))), Or(Not(Not(ID("The Sorcerer is a Knight"))), Or(Not(ID("B is a Sorcerer")), Not(ID("B is a Knight"))))), Or(And(Not(ID("A is a Knight")), Not(ID("The Sorcerer is a Knight"))), And(ID("A is a Knight"), ID("The Sorcerer is a Knight"))))
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		Simplify(x)
 	}
 }
-func BenchmarkSimplify_TypeAnd_TypeAnd_TypeOr_TypeAnd_TypeNot_AisaSorcerer_BisaSorcerer_TypeAnd_AisaSorcerer_TypeNot_BisaSorcerer_TypeOr_TypeNot_TheSorcererisaKnight_TypeOr_TypeNot_AisaSorcerer_AisaKnight_TypeOr_TypeNot_TheSorcererisaKnight_TypeOr_TypeNot_BisaSorcerer_BisaKnight_TypeOr_TypeNot_TypeNot_TheSorcererisaKnight_TypeOr_TypeNot_AisaSorcerer_TypeNot_AisaKnight_TypeOr_TypeNot_TypeNot_TheSorcererisaKnight_TypeOr_TypeNot_BisaSorcerer_TypeNot_BisaKnight_TypeOr_TypeAnd_TypeNot_AisaKnight_TypeNot_TypeNot_TheSorcererisaKnight_TypeAnd_AisaKnight_TypeNot_TheSorcererisaKnight(b *testing.B) {
+
+// this one generated an "identifier too long" in go test 1.1
+func BenchmarkSimplify_TooLong3(b *testing.B) {
 	x := And(And(Or(And(Not(ID("A is a Sorcerer")), ID("B is a Sorcerer")), And(ID("A is a Sorcerer"), Not(ID("B is a Sorcerer")))), Or(Not(ID("The Sorcerer is a Knight")), Or(Not(ID("A is a Sorcerer")), ID("A is a Knight"))), Or(Not(ID("The Sorcerer is a Knight")), Or(Not(ID("B is a Sorcerer")), ID("B is a Knight"))), Or(Not(Not(ID("The Sorcerer is a Knight"))), Or(Not(ID("A is a Sorcerer")), Not(ID("A is a Knight")))), Or(Not(Not(ID("The Sorcerer is a Knight"))), Or(Not(ID("B is a Sorcerer")), Not(ID("B is a Knight"))))), Or(And(Not(ID("A is a Knight")), Not(Not(ID("The Sorcerer is a Knight")))), And(ID("A is a Knight"), Not(ID("The Sorcerer is a Knight")))))
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -445,14 +451,18 @@ func BenchmarkSimplify_TypeAnd_TypeOr_TypeAnd_TypeNot_BisaKnight_TypeNot_TypeOr_
 		Simplify(x)
 	}
 }
-func BenchmarkSimplify_TypeAnd_TypeOr_TypeAnd_TypeNot_GisaKnight_TypeNot_TypeOr_TypeAnd_TypeNot_GisaKnight_TypeNot_TypeNot_Gstolethewatch_TypeAnd_GisaKnight_TypeNot_Gstolethewatch_TypeAnd_GisaKnight_TypeOr_TypeAnd_TypeNot_GisaKnight_TypeNot_TypeNot_Gstolethewatch_TypeAnd_GisaKnight_TypeNot_Gstolethewatch_TypeOr_TypeAnd_TypeNot_GisaKnight_TypeNot_TypeOr_TypeAnd_TypeNot_GisaKnight_TypeNot_Gstolethewatch_TypeAnd_GisaKnight_Gstolethewatch_TypeAnd_GisaKnight_TypeOr_TypeAnd_TypeNot_GisaKnight_TypeNot_Gstolethewatch_TypeAnd_GisaKnight_Gstolethewatch(b *testing.B) {
+
+// this one generated an "identifier too long" in go test 1.1
+func BenchmarkSimplify_TooLong4(b *testing.B) {
 	x := And(Or(And(Not(ID("G is a Knight")), Not(Or(And(Not(ID("G is a Knight")), Not(Not(ID("G stole the watch")))), And(ID("G is a Knight"), Not(ID("G stole the watch")))))), And(ID("G is a Knight"), Or(And(Not(ID("G is a Knight")), Not(Not(ID("G stole the watch")))), And(ID("G is a Knight"), Not(ID("G stole the watch")))))), Or(And(Not(ID("G is a Knight")), Not(Or(And(Not(ID("G is a Knight")), Not(ID("G stole the watch"))), And(ID("G is a Knight"), ID("G stole the watch"))))), And(ID("G is a Knight"), Or(And(Not(ID("G is a Knight")), Not(ID("G stole the watch"))), And(ID("G is a Knight"), ID("G stole the watch"))))))
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		Simplify(x)
 	}
 }
-func BenchmarkSimplify_TypeAnd_TypeOr_TypeAnd_TypeNot_GisaKnight_TypeNot_TypeOr_TypeAnd_TypeNot_GisaKnight_TypeNot_TypeNot_Gstolethewatch_TypeAnd_GisaKnight_TypeNot_Gstolethewatch_TypeAnd_GisaKnight_TypeOr_TypeAnd_TypeNot_GisaKnight_TypeNot_TypeNot_Gstolethewatch_TypeAnd_GisaKnight_TypeNot_Gstolethewatch_TypeOr_TypeAnd_TypeNot_GisaKnight_TypeNot_TypeNot_TypeOr_TypeAnd_TypeNot_GisaKnight_TypeNot_Gstolethewatch_TypeAnd_GisaKnight_Gstolethewatch_TypeAnd_GisaKnight_TypeNot_TypeOr_TypeAnd_TypeNot_GisaKnight_TypeNot_Gstolethewatch_TypeAnd_GisaKnight_Gstolethewatch(b *testing.B) {
+
+// this one generated an "identifier too long" in go test 1.1
+func BenchmarkSimplify_TooLong5(b *testing.B) {
 	x := And(Or(And(Not(ID("G is a Knight")), Not(Or(And(Not(ID("G is a Knight")), Not(Not(ID("G stole the watch")))), And(ID("G is a Knight"), Not(ID("G stole the watch")))))), And(ID("G is a Knight"), Or(And(Not(ID("G is a Knight")), Not(Not(ID("G stole the watch")))), And(ID("G is a Knight"), Not(ID("G stole the watch")))))), Or(And(Not(ID("G is a Knight")), Not(Not(Or(And(Not(ID("G is a Knight")), Not(ID("G stole the watch"))), And(ID("G is a Knight"), ID("G stole the watch")))))), And(ID("G is a Knight"), Not(Or(And(Not(ID("G is a Knight")), Not(ID("G stole the watch"))), And(ID("G is a Knight"), ID("G stole the watch")))))))
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
