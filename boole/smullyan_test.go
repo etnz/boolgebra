@@ -168,3 +168,26 @@ func ExampleSimplify_smullyan5() {
 	// False
 	// !"G stole the watch"
 }
+
+
+func ExampleSimplify_smullyan6() {
+	// A Knight is someone that always tells the truth.
+	// A Knaves is someone that always tells a lie.
+
+    // https://en.wikipedia.org/wiki/Knights_and_Knaves#Examples
+
+	// let's define three properties
+	A_is_a_knight := ID("A is a Knight")
+	B_is_a_knight := ID("B is a Knight")
+	
+	// A says, "We are both knaves."
+	Assertion1 := And(Not(A_is_a_knight), Not(B_is_a_knight))
+
+	// like always with Knights and Knaves, what;s true is:
+	Fact1 := Eq(A_is_a_knight, Assertion1)
+
+	fmt.Println(Simplify(Fact1))
+	//Output:
+	// !"A is a Knight" & "B is a Knight"
+
+}
