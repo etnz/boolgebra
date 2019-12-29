@@ -103,3 +103,11 @@ func Rules(N int, values ...string) Expr {
 
 	return rules
 }
+
+func Solve(nbproperties int, values []string, hints ...Expr) Expr {
+
+	rules := []Expr{}
+	rules = append(rules, Rules(nbproperties, values...))
+	rules = append(rules, hints...)
+	return Simplify(And(rules...))
+}
