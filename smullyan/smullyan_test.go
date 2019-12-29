@@ -1,8 +1,12 @@
-package boolgebra
+package smullyan
 
-import "fmt"
+import . "github.com/etnz/boolgebra"
 
-//testcases from Raymond Smullyan "Satan, Cantor and Infinity"
+import (
+	"fmt"
+)
+
+// smullyan_test.go holds examples taken from Raymond Smullyan "Satan, Cantor and Infinity"
 
 func ExampleSimplify_smullyan1() {
 	// A Knight is someone that always tells the truth.
@@ -35,7 +39,7 @@ func ExampleSimplify_smullyan1() {
 
 	fmt.Println(Simplify(And(Fact1, Fact2)))
 	//Output:
-	// And(B is a Knight, Not(A is a Knight), Not(C is a Knight))
+	// And(Not("A is a Knight"), "B is a Knight", Not("C is a Knight"))
 
 }
 
@@ -71,8 +75,7 @@ func ExampleSimplify_smullyan2() {
 	fmt.Println(Simplify(And(Fact1, Fact2, Fact3, Fact4)))
 
 	//Output:
-	// And(C is a Knight, Not(B is a Knight), Not(A is a Knight), Not(B is a Sorcerer), Not(A is a Sorcerer), C is a Sorcerer)
-
+	// And(Not("A is a Knight"), Not("A is a Sorcerer"), Not("B is a Knight"), Not("B is a Sorcerer"), "C is a Knight", "C is a Sorcerer")
 }
 
 func ExampleSimplify_smullyan3() {
@@ -102,18 +105,17 @@ func ExampleSimplify_smullyan3() {
 	// if A answered yes
 	Hypothesis1 := Eq(A_is_a_knight, Sorcerer_is_a_knight)
 	// what can be deduced is what is always true, i.e y, so that x = y AND something else
-	Deduction1 := Factor(And(Facts, Hypothesis1))
+	Deduction1, _ := Factor(And(Facts, Hypothesis1))
 
 	// if A answered no
 	Hypothesis2 := Eq(A_is_a_knight, Not(Sorcerer_is_a_knight))
-	Deduction2 := Factor(And(Facts, Hypothesis2))
-
+	Deduction2, _ := Factor(And(Facts, Hypothesis2))
 	// If nothing can be deduced, then Deduction is "True" (the least thing that is always true)
 	//So we can do
 
 	fmt.Println(Simplify(And(Deduction1, Deduction2)))
 	//Output:
-	// And(Not(A is a Sorcerer), B is a Sorcerer)
+	// And(Not("A is a Sorcerer"), "B is a Sorcerer")
 }
 
 func ExampleSimplify_smullyan4() {
@@ -135,11 +137,12 @@ func ExampleSimplify_smullyan4() {
 	Fact1 := Eq(B_is_a_knight, Eq(C_is_a_knight, Story))
 
 	Fact2 := Eq(C_Lied, Not(C_is_a_knight))
-	fmt.Println(Factor(And(Fact1, Fact2)))
+	deduction, _ := Factor(And(Fact1, Fact2))
+	fmt.Println(deduction)
 	// The only thing that is certain is "True". There is not relevant information here
 
 	//Output:
-	//True
+	// Lit(true)
 }
 
 func ExampleSimplify_smullyan5() {
@@ -166,6 +169,29 @@ func ExampleSimplify_smullyan5() {
 	fmt.Println(Deduction2)
 
 	//Output:
-	// False
-	// Not(G stole the watch)
+	// Lit(false)
+	// Not("G stole the watch")
+
+}
+
+func ExampleSimplify_smullyan6() {
+	// A Knight is someone that always tells the truth.
+	// A Knaves is someone that always tells a lie.
+
+	// https://en.wikipedia.org/wiki/Knights_and_Knaves#Examples
+
+	// let's define three properties
+	A_is_a_knight := ID("A is a Knight")
+	B_is_a_knight := ID("B is a Knight")
+
+	// A says, "We are both knaves."
+	Assertion1 := And(Not(A_is_a_knight), Not(B_is_a_knight))
+
+	// like always with Knights and Knaves, what;s true is:
+	Fact1 := Eq(A_is_a_knight, Assertion1)
+
+	fmt.Println(Simplify(Fact1))
+	//Output:
+	// And(Not("A is a Knight"), "B is a Knight")
+
 }

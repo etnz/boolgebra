@@ -1,23 +1,8 @@
-package boole
+package boolgebra
 
-//simplify reduces 'x' using Quine-McCluskey algorithm
-//func simplify(x expression) expression{
-// QM algo goes: two phases
-// - reduce minterms for instance ABCD or ABC'D => ABD, the expression is not yet minimal, but it has some good enough properties
-// - minimize the minterms, some are not not prime, Petrick's method, makes it possible to find the minimum by creating another expression to simply reduce ( as defined above)
-
-//	red := reduce(x) // apply the first level of reduction
-
-// each minterm in red is given an ID
-// then Petricks builds a new expression P out of it that just need to be reduced
-// then pick P-minterms that have the lowest number of ID.
-// they are all good candidates, but we can optimize one step further, once expanded to red-minterms, use the one with the lowest number of red-ID
-//}
+// Quine-McCluskey is an algorithm to simplify a sum of prod.
 
 //reduce combine together all minterms of x into prime implicants
-//
-// this is not the final simplification since a subset of the prime implicants is enough to generate an equivalent expression. This final stage is not part of this function,
-// therefore you'll get only prime implicants, but not a minimal subset of those.
 func reduce(x expression) expression {
 	// to reduce we need to cluster minterms of x into number of non neg ID
 
@@ -27,7 +12,7 @@ func reduce(x expression) expression {
 	// fill the first cluster
 	cluster = make([][]minterm, 1+len(x.IDs()))
 	for _, m := range x {
-		ones := m.PosLen()
+		ones := positives(m)
 		cluster[ones] = append(cluster[ones], m)
 	}
 
@@ -110,15 +95,119 @@ func reduce(x expression) expression {
 	}
 	//done, we now have all the prime implicant
 	return expression(primes)
+}
+
+// appenunique behave like 'append' except for items in 'terms' that are present in 'set': they
+// are not appended in this case.
+func appendunique(set []minterm, terms ...minterm) []minterm {
+termsloop:
+	for _, m := range terms {
+		for _, x := range set {
+			if equals(x, m) {
+				// noting to append
+				continue termsloop
+			}
+		}
+		set = append(set, m)
+	}
+	return set
+}
+
+// combine computes c, if possible, that combines x and y
+//
+// x and y must be identical but on exactly one identifier.
+//
+// the combined is then then intersection of x and y.
+func combine(x, y minterm) (c minterm, ok bool) {
+	// alg: find out the one and only one difference between x,y
+	// so scan for differences and count.
+	var d string // the identifier that is different (if diffs == 1))
+	diffs := 0   // number of differences
+	for k, v := range x {
+		w, exists := y[k]
+		if !exists || v != w {
+			// this one is different, store it
+			d = k
+			diffs++
+			if diffs > 1 {
+				return c, false
+			}
+		}
+	}
+	// same goes backward too ( to check for missing in x only
+
+	for k := range y {
+		_, exists := x[k]
+		if !exists {
+			// this one is different, store it
+			d = k
+			diffs++
+			if diffs > 1 {
+				return c, false
+			}
+		}
+	}
+	if diffs != 1 {
+		return c, false
+	}
+	// we hit the one difference !
+	// build c accordingly then
+	// x and y are guaranteed to be identical but on 'd'
+	// so copy x but 'd'
+	c = make(minterm)
+	for k, v := range x {
+		if k != d {
+			c[k] = v
+		}
+	}
+	return c, true
 
 }
 
-func appendunique(set []minterm, m minterm) []minterm {
-	for _, x := range set {
-		if x.Equals(m) { // nothing to append
-			return set
+// equals return true if and only if m and n are both minterm, then they are semantically equals
+func equals(m, n minterm) bool {
+	if len(m) != len(n) {
+		return false
+	}
+	for k, v := range m {
+		if w, exists := n[k]; !exists || v != w {
+			return false
 		}
 	}
-	return append(set, m)
+	return true
+}
 
+// positives returns the number of positive identifiers
+func positives(m minterm) int {
+	count := 0
+	for _, v := range m {
+		if v {
+			count++
+		}
+	}
+	return count
+}
+
+//inter computes the intersection of x inter  y
+func inter(x, y minterm) minterm {
+	res := make(minterm)
+	for k, v := range x {
+		if w, exists := y[k]; exists && v == w {
+			res[k] = v
+		}
+	}
+	return res
+
+}
+
+//div computes x/y i.e z so that And(z,y) = x
+// can be seen as x removed from items in y
+func div(x, y minterm) minterm {
+	res := make(minterm)
+	for k, v := range x {
+		if w, exists := y[k]; !exists || v != w {
+			res[k] = v
+		}
+	}
+	return res
 }
