@@ -1,9 +1,12 @@
 package boolgebra
 
+// secondary.go holds functions to handle Expr that are implemented
+// using primary ones
+
 // Impl returns the logical implication of A,B
 //
 // see https://en.wikipedia.org/wiki/Boolean_algebra#Secondary_operations
-func Impl(A, B Expression) Expression {
+func Impl(A, B Expr) Expr {
 	return Or(Not(A), B)
 }
 
@@ -12,16 +15,16 @@ func Impl(A, B Expression) Expression {
 // It can also be the logical equivalence A <=> B. Both are in fact the same boolean function.
 //
 // see https://en.wikipedia.org/wiki/Boolean_algebra#Secondary_operations
-func Eq(A, B Expression) Expression { return Or(And(Not(A), Not(B)), And(A, B)) }
+func Eq(A, B Expr) Expr { return Or(And(Not(A), Not(B)), And(A, B)) }
 
 // Xor returns the logical Xor
 //
 // see https://en.wikipedia.org/wiki/Boolean_algebra#Secondary_operations
-func Xor(A, B Expression) Expression { return Or(And(A, Not(B)), And(Not(A), B)) }
+func Xor(A, B Expr) Expr { return Or(And(A, Not(B)), And(Not(A), B)) }
 
 // Neq returns the logical '!='
 //
 // It is the same as Xor.
 //
 // see https://en.wikipedia.org/wiki/Boolean_algebra#Secondary_operations
-func Neq(A, B Expression) Expression { return Xor(A, B) }
+func Neq(A, B Expr) Expr { return Xor(A, B) }
