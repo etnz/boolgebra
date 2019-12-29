@@ -3,11 +3,8 @@ package grid
 import (
 	"fmt"
 
-	. "github.com/etnz/boolgebra"
 	"github.com/etnz/permute"
 )
-
-func LexNext(p []int) bool { return permute.LexNext(p) }
 
 // creates an ID that means property name = value
 // just for test, not safe for any kind of injection
@@ -65,7 +62,7 @@ func Rules(N int, values ...string) Expr {
 	// next computes the next solution
 	next := func() bool {
 		c := 1 // always start incrementing skipping the first column
-		for c < len(sol) && !LexNext(sol[c]) {
+		for c < len(sol) && !permute.LexNext(sol[c]) {
 			c++ // current column was incremented, but reached the end, I need to increment the next one, hence the c++
 		}
 		return c < len(sol)
@@ -104,112 +101,4 @@ func Rules(N int, values ...string) Expr {
 	// now I need to convert it to the boolgebra
 
 	return rules
-}
-
-// logic grid game
-func ExampleSimplify_logic3x1() {
-	// let's define three properties
-	//"name"
-	Paul, Luc, Fernand := "Paul", "Luc", "Fernand"
-	//"game"
-	A, B, C := "A", "B", "C"
-
-	// "age"
-	Age5, Age7, Age9 := "5", "7", "9"
-
-	// generate all the logical relations due to game rules
-	rules := Rules(3, /*groups*/
-		Paul, Luc, Fernand,
-		A, B, C,
-		Age5, Age7, Age9)
-
-	//log.Printf("rules: len=%v ids=%v\n%v", rules.Terms(), len(rules.IDs()), rules)
-
-	// hints
-
-	// Fernand is older than Luc
-	Hint1 := And(
-		Not(P(Luc, Age9)),
-		Not(P(Fernand, Age5)),
-		Impl(P(Luc, Age5), Or(P(Fernand, Age7), P(Fernand, Age9))),
-		Impl(P(Luc, Age7), P(Fernand, Age9)),
-		//Impl(P(Luc, Age9), Lit(false)),
-	)
-
-	// The one that plays C is 7 years old.
-	Hint2 := P(C, Age7)
-
-	// Paul is not the youngest, he plays A
-	Hint3 := And(
-		Not(P(Paul, Age5)),
-		P(Paul, A),
-	)
-
-	result := Simplify(And(rules, Hint1, Hint2, Hint3))
-
-	if result.Terms() > 1 {
-		fmt.Printf("There are %d solutions, that's too many\n", result.Terms())
-		fmt.Println(Factor(result))
-	} else {
-		fmt.Printf("There is %d solution.\n", result.Terms())
-	}
-	//Output:
-	// There is 1 solution.
-}
-
-// logic grid game
-func ExampleSimplify_logic4x1() {
-
-	Philippe, Viviane, Mathilde, Anne := "nPhilippe", "nViviane", "nMathilde", "nAnne"
-	Math, French, Physics, Sport := "mMath", "mFrench", "mPhysics", "mSport"
-	R1, R3, R5, R6 := "R1", "R3", "R5", "R6"
-	A14, A15, A17, A19 := "A14", "A15", "A17", "A19"
-
-	// generate all the logical relations due to game rules
-	rules := Rules(4,
-		Philippe, Viviane, Mathilde, Anne,
-		Math, French, Physics, Sport,
-		R1, R3, R5, R6,
-		A14, A15, A17, A19,
-	)
-
-	// hints
-
-	Hints := And(
-		// - L'élève qui réussit en maths a 17 de moyenne, n'est pas premier et s'entend bien avec Anne.
-		P(Math, A17),
-		Not(P(Math, R1)),
-		Not(P(Anne, Math)),
-
-		// - L'élève qui réussit en Sciences Physiques n'est pas Philippe et n'a ni la plus haute moyenne ni la plus basse moyenne.
-		Not(P(Philippe, Physics)),
-		Not(P(Physics, A19)),
-		Not(P(Physics, A14)),
-
-		// - Mathilde réussit bien en Français mais elle n'est pas dans les trois premiers de sa classe.
-		P(Mathilde, French),
-		Not(P(Mathilde, R1)),
-		Not(P(Mathilde, R3)),
-
-		// - Philippe a moins de 16 de moyenne dans sa matière ce qui le met 6ème de sa classe.
-		Not(P(Philippe, A17)),
-		Not(P(Philippe, A19)),
-
-		//Or(P(Philippe, A14), P(Philippe, A15)),
-
-		P(Philippe, R6),
-	)
-
-	result := Simplify(And(rules, Hints))
-
-	if result.Terms() > 1 {
-		fmt.Printf("There are %d solutions, that's too many\n", result.Terms())
-		deduction, rem := Factor(result)
-		fmt.Println(deduction)
-		fmt.Println(rem)
-	} else {
-		fmt.Printf("There is %d solution.\n", result.Terms())
-	}
-	//Output:
-	// There is 1 solution.
 }
