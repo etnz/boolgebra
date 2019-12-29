@@ -2,182 +2,9 @@ package grid
 
 import (
 	"fmt"
-	"sort"
 
 	. "github.com/etnz/boolgebra"
 )
-
-// TODO this is copy/paste from MY own other code, use a better approach (module when improving logic graph solving)
-
-// LexNext finds the next permutation in lexicographical order.
-//
-// return false if it has gone back to the identity permutation.
-//
-// inspired from Narayana Pandita in https://en.wikipedia.org/wiki/Permutation
-func LexNext(p []int) bool {
-
-	// the principle for lehmer code is to convert an factoradic number into its permutation:
-	//
-	// each factoradic digit stand for the selection of an index, among all possible.
-	//
-	// Excerpt from wikipedia:
-	//
-	// The process may become clearer with a longer example. For example, here is how the digits in the factoradic 4041000! (equal to 298210) pick out the digits in (4,0,6,2,1,3,5), the 2982nd permutation of the numbers 0 through 6.
-	//
-	//                                  4041000! → (4,0,6,2,1,3,5)
-	// factoradic:  4          0                        4        1          0          0        0!
-	//              |          |                        |        |          |          |        |
-	//     (0,1,2,3,4,5,6) -> (0,1,2,3,5,6) -> (1,2,3,5,6) -> (1,2,3,5) -> (1,3,5) -> (3,5) -> (5)
-	//              |          |                        |        |          |          |        |
-	// permutation:(4,         0,                       6,       2,         1,         3,       5)
-	//
-	//
-	// One property is that the last index is always 0 (there is no choice left)
-	//
-	// If I want to compute the next one (the goal here), I need to compute the next factoradic number by applying two simple rules:
-	//
-	// if the current digit is the last of its position (0! 1! 2! 3! etc), then I set it to 0, and increment the next digit.
-	//
-	// else simply increment it
-	//
-	// In the example it would be :
-	//
-	// digit0 = 0 last possible one, move to next
-	//
-	// digit1 = 3 it's the index 0 of (3,5), so increment the index (1) and apply digit1 := 5
-	//
-	//
-	// We can find out that a digit can be incremented iif it is *not* the max of the previous digits values.
-	//
-	// In the example previous digits values are 5,3 , and 3 is not the max, it can be simply incremented
-
-	// the first number that is not the "max" of the previous values, is the one that can be "incremented"
-
-	i := len(p) - 2 // loop from last but one digit
-	// the last one is always 0, and can never be incremented
-	for i >= 0 && p[i] > p[i+1] {
-		i--
-	}
-	// this test seems odd, but it works by recursion:
-	// recursive hypothethis: p[i+1] is the max of the remaining digits
-	// therefore  p[i]> p[i+1] =>  p[i] is also the max of the remaining digits
-	//
-
-	// Therefore now 'i' is either -1 meaning that we have reached the end, the next is the first in fact
-	if i < 0 {
-		sort.Ints(p) //we start again
-		return false
-	}
-
-	// we keep the actual index at i
-	val := p[i]     // this is the one that will be "incremented" ( next value in possible ones)
-	vals := p[i+1:] // subslice of remaining values (one is greater that val, rembember!)
-	sort.Ints(vals) // sort them, 1- to search among them, but also because this is how they will be added
-
-	pos := sort.SearchInts(vals, val) // find where I would insert val (this is the next one)
-	p[i], vals[pos] = vals[pos], val  // permute val, with the next one (found above)
-
-	// and now copy vals to the rest of p
-	copy(p[i+1:], vals)
-	return true
-}
-
-// creates an ID that means property name = value
-// just for test, not safe for any kind of injection
-func P(name, value string) Expr { return ID(name + "=" + value) }
-
-// Values is a list all possible values without repetition
-//
-// a Group is a subset of Values, Groups is the set of all defined Group, N is card(Groups)
-//
-// Let's define 'R' an transitive and symetric relation in Values noted `\forall x,y \in Values xRy`
-//
-//     1. `\forall g,h \in Groups² |g| = |h| \and g \inter h = \phi`
-//     2. `\forall G \in Groups, \forall v \notin G \exists! w in G vRw`
-//
-// groups are defined by to position in the list
-func Rules(N int, values ...string) Expr {
-
-	if len(values)%N != 0 {
-		panic(fmt.Sprintf("inconsistent number of values %d with number of groups %d (not divisible)", len(values), N))
-	}
-	// value set seem to be in good shape, let's generate all the rules
-	M := len(values) / N
-
-	{ // the following code is in a a block 'cause I don't keep anyting from here the index is purely local, and temporary
-		index := make(map[string]struct{}) // index values (that shall be unique)
-		for _, v := range values {
-			index[v] = struct{}{}
-		}
-		if len(values) != len(index) {
-			panic("values have repetitions")
-		}
-	}
-
-	// solutions for the game can be written as relations to the first property
-	//
-	//
-	//   prop0 , prop1, propi...
-	//     val0,  valj,  valk...
-	//    ....
-	//
-	//  prop0 is always values in their original order, then each column, can be sorted randomly => any permutation will do (there are M! of such permutations)
-	//  so we have to sweep every permutation of columns from 1 to N-1
-	//
-	// therefore the number of solutions is (M!)^(N-1)
-
-	// the first goal is to generate sol the vector of permutations, initialised with the identity permutation
-	sol := make([][]int, N) // all including column 0 even if we don't sweep it
-	for i := range sol {
-		sol[i] = make([]int, M)
-		for j := range sol[i] {
-			sol[i][j] = j
-		}
-	}
-
-	// next computes the next solution
-	next := func() bool {
-		c := 1 // always start incrementing skipping the first column
-		for c < len(sol) && !LexNext(sol[c]) {
-			c++ // current column was incremented, but reached the end, I need to increment the next one, hence the c++
-		}
-		return c < len(sol)
-	}
-
-	// find the offset in the column 0 that is related to the value i.
-	// in other words, if "Paul" (position 3) is "5yo" (position 12) then whois(12) return 3. Who is "5yo"? "Paul"
-	whois := func(i int) (i0 int) {
-		// i/M is the column in the solution of the ith value
-		// i%M is the value offset in the column ( like 0 for the first value).
-		// so simply search in the column for it. It gives us the row that is related to i.
-		// the column 0 value is exactly this row, so we just return it
-		for i0 = 0; sol[i/M][i0] != i%M; i0++ {
-		}
-		return
-	}
-
-	//rules := make([]map[string]bool, 0) // the game rules will be an Or() of all possible solutions
-	rules := Lit(false)
-	for ok := true; ok; ok = next() { // loop over all columns x all permutations, and break when done
-
-		var tb TermBuilder // build a big AND expression
-
-		// for the given solution, scan all possible ID ( "Paul is 6yo") wether it is true or not
-		for i, v := range values {
-			for j, w := range values {
-				if i != j {
-					tb.And(v+"="+w, whois(i) == whois(j))
-				}
-			}
-		}
-
-		// tb contains the ONE solution expressed as boolean
-		rules = Or(rules, tb.Build()) // append it
-	}
-	// now I need to convert it to the boolgebra
-
-	return rules
-}
 
 // logic grid game
 func ExampleSimplify_logic3x1() {
@@ -238,17 +65,12 @@ func ExampleSimplify_logic4x1() {
 	R1, R3, R5, R6 := "R1", "R3", "R5", "R6"
 	A14, A15, A17, A19 := "A14", "A15", "A17", "A19"
 
-	// generate all the logical relations due to game rules
-	rules := Rules(4,
-		Philippe, Viviane, Mathilde, Anne,
+	result := Solve(4, []string{Philippe, Viviane, Mathilde, Anne,
 		Math, French, Physics, Sport,
 		R1, R3, R5, R6,
 		A14, A15, A17, A19,
-	)
+	},
 
-	// hints
-
-	Hints := And(
 		// - L'élève qui réussit en maths a 17 de moyenne, n'est pas premier et s'entend bien avec Anne.
 		P(Math, A17),
 		Not(P(Math, R1)),
@@ -273,8 +95,6 @@ func ExampleSimplify_logic4x1() {
 		P(Philippe, R6),
 	)
 
-	result := Simplify(And(rules, Hints))
-
 	if result.Terms() > 1 {
 		fmt.Printf("There are %d solutions, that's too many\n", result.Terms())
 		deduction, rem := Factor(result)
@@ -285,4 +105,64 @@ func ExampleSimplify_logic4x1() {
 	}
 	//Output:
 	// There is 1 solution.
+}
+
+func ExampleArt_Contest() {
+	// from https://www.brainzilla.com/logic/logic-grid/art-contest/
+	// Four artists exhibited their arts using very particular techniques at the national art contest.
+	// Knowing that the surfaces are displayed from the softest to the hardest, which tool did Monica use?
+
+	aerograph, brush, spatula, sponge := "aerograph", "brush", "spatula", "sponge"
+	Andrew, Frank, Monica, Sandra := "Andrew", "Frank", "Monica", "Sandra"
+	acrylic, oil, tempera, watercolor := "acrylic", "oil", "tempera", "watercolor"
+	paper, cardboard, canvas, wood := "paper", "cardboard", "canvas", "wood"
+
+	result := Solve(4, []string{
+		aerograph, brush, spatula, sponge,
+		Andrew, Frank, Monica, Sandra,
+		acrylic, oil, tempera, watercolor,
+		paper, cardboard, canvas, wood},
+
+		// 1. Exactly one of the artists has the same initial in its name and its tool.
+		Xor(P(Andrew, aerograph), Or(P(Sandra, spatula), P(Sandra, sponge))),
+
+		// 2. A man used acrylics, a woman painted on paper.
+		Xor(P(Andrew, acrylic), P(Frank, acrylic)),
+		Xor(P(Monica, paper), P(Sandra, paper)),
+
+		// 3. Oil colors were used on a less resistant surface than Frank's choice. Frank didn't use the sponge.
+		Impl(P(Frank, wood), Or(P(oil, canvas), P(oil, cardboard), P(oil, paper))),
+		Impl(P(Frank, canvas), Or(P(oil, cardboard), P(oil, paper))),
+		Impl(P(Frank, cardboard), P(oil, paper)),
+		Not(P(Frank, sponge)),
+
+		// 4. Among the artist who used the tempera and the artist who painted on wood, one is Monica and the other used the brush.
+		Or(And(P(Monica, tempera), P(brush, wood)), And(P(Monica, wood), P(brush, tempera))),
+		Not(P(tempera, wood)),
+
+		// 5. The sponge was used with acrylic or on cardboard.
+		Or(P(sponge, acrylic), P(sponge, cardboard)),
+
+		// 6. Andrew either used the spatula or painted on canvas.
+		Or(P(Andrew, spatula), P(Andrew, canvas)),
+
+		// 7. Watercolor was used on a harder surface than tempera.
+		Impl(P(tempera, paper), Or(P(watercolor, cardboard), P(watercolor, canvas), P(watercolor, wood))),
+		Impl(P(tempera, cardboard), Or(P(watercolor, canvas), P(watercolor, wood))),
+		Impl(P(tempera, canvas), P(watercolor, wood)),
+		Not(P(tempera, wood)),
+
+		// 8. The aerograph is related to two items that both have the same initial.
+		Or(
+			And(P(aerograph, Andrew), P(aerograph, acrylic)),
+			And(P(aerograph, watercolor), P(aerograph, wood)),
+		),
+	)
+
+	answer, _ := Factor(Or(
+		And(P(Monica, aerograph), P(Monica, brush), P(Monica, spatula), P(Monica, sponge)),
+		result,
+	))
+	fmt.Printf("The answer is %v\n", answer)
+	// Output: The answer is "Monica=aerograph"
 }
