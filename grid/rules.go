@@ -3,6 +3,7 @@ package grid
 import (
 	"fmt"
 
+	. "github.com/etnz/boolgebra" //
 	"github.com/etnz/permute"
 )
 
