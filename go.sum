@@ -1,2 +1,4 @@
 github.com/etnz/permute v0.0.0-20160126210303-99613134c393 h1:OrerCUTOi2vxcHEmUqzeLgHRQ5cpX2EjDEyCyfPhLo4=
 github.com/etnz/permute v0.0.0-20160126210303-99613134c393/go.mod h1:7KwuQMYoBcy2Q4f8xpzjYwGa4fgUbJ5iSZ6ifnR7heA=
+github.com/etnz/stringset v0.0.0-20160903143730-b4da118f1741 h1:5Q8m8OayYWpYzeA4Vlre2RVZNMX5xkpcn5dJUm0PmkA=
+github.com/etnz/stringset v0.0.0-20160903143730-b4da118f1741/go.mod h1:XeZ9rSzs4cYZTQFsAcSPMYFU7gJk/Wsdk5SjTavHAdw=
