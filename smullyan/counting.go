@@ -1,7 +1,9 @@
 package smullyan
 
-import "github.com/etnz/permute"
-import . "github.com/etnz/boolgebra"
+import (
+	. "github.com/etnz/boolgebra"
+	"github.com/etnz/permute"
+)
 
 //counting.go holds the function relative to counting, like Exactly or AtMost
 

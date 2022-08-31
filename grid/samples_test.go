@@ -47,11 +47,11 @@ func ExampleSimplify_logic3x1() {
 
 	result := Simplify(And(rules, Hint1, Hint2, Hint3))
 
-	if result.Terms() > 1 {
-		fmt.Printf("There are %d solutions, that's too many\n", result.Terms())
+	if len(result) > 1 {
+		fmt.Printf("There are %d solutions, that's too many\n", len(result))
 		fmt.Println(Factor(result))
 	} else {
-		fmt.Printf("There is %d solution.\n", result.Terms())
+		fmt.Printf("There is %d solution.\n", len(result))
 	}
 	//Output:
 	// There is 1 solution.
@@ -95,13 +95,13 @@ func ExampleSimplify_logic4x1() {
 		P(Philippe, R6),
 	)
 
-	if result.Terms() > 1 {
-		fmt.Printf("There are %d solutions, that's too many\n", result.Terms())
+	if len(result) > 1 {
+		fmt.Printf("There are %d solutions, that's too many\n", len(result))
 		deduction, rem := Factor(result)
 		fmt.Println(deduction)
 		fmt.Println(rem)
 	} else {
-		fmt.Printf("There is %d solution.\n", result.Terms())
+		fmt.Printf("There is %d solution.\n", len(result))
 	}
 	//Output:
 	// There is 1 solution.

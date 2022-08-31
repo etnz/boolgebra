@@ -2,15 +2,15 @@ package boolgebra
 
 // Quine-McCluskey is an algorithm to simplify a sum of prod.
 
-//reduce combine together all minterms of x into prime implicants
-func reduce(x expression) expression {
+// reduce combine together all minterms of x into prime implicants
+func reduce(x Expr) Expr {
 	// to reduce we need to cluster minterms of x into number of non neg ID
 
-	var cluster [][]minterm // index minterm by their 1s. store them in a slice
-	var primes []minterm    // also keep primes all together
+	var cluster [][]Term // index minterm by their 1s. store them in a slice
+	var primes []Term    // also keep primes all together
 
 	// fill the first cluster
-	cluster = make([][]minterm, 1+len(x.IDs()))
+	cluster = make([][]Term, 1+len(x.IDs()))
 	for _, m := range x {
 		ones := positives(m)
 		cluster[ones] = append(cluster[ones], m)
@@ -20,7 +20,7 @@ func reduce(x expression) expression {
 	for !emptycluster {
 		// the next cluster will become the current one soon, so we already set the bool to true, because we start with an empty one
 		emptycluster = true // we start with an empty next one, let see if it get filled
-		next := make([][]minterm, len(cluster))
+		next := make([][]Term, len(cluster))
 
 		// attempt all possible combinations.
 		// a minterm with n Positive IDs, can only be combined with another one with n or n+1 ( or n-1 but combination is symetric so we don't care)
@@ -94,12 +94,12 @@ func reduce(x expression) expression {
 		cluster = next
 	}
 	//done, we now have all the prime implicant
-	return expression(primes)
+	return Expr(primes)
 }
 
 // appenunique behave like 'append' except for items in 'terms' that are present in 'set': they
 // are not appended in this case.
-func appendunique(set []minterm, terms ...minterm) []minterm {
+func appendunique(set []Term, terms ...Term) []Term {
 termsloop:
 	for _, m := range terms {
 		for _, x := range set {
@@ -118,7 +118,7 @@ termsloop:
 // x and y must be identical but on exactly one identifier.
 //
 // the combined is then then intersection of x and y.
-func combine(x, y minterm) (c minterm, ok bool) {
+func combine(x, y Term) (c Term, ok bool) {
 	// alg: find out the one and only one difference between x,y
 	// so scan for differences and count.
 	var d string // the identifier that is different (if diffs == 1))
@@ -154,7 +154,7 @@ func combine(x, y minterm) (c minterm, ok bool) {
 	// build c accordingly then
 	// x and y are guaranteed to be identical but on 'd'
 	// so copy x but 'd'
-	c = make(minterm)
+	c = make(Term)
 	for k, v := range x {
 		if k != d {
 			c[k] = v
@@ -165,7 +165,7 @@ func combine(x, y minterm) (c minterm, ok bool) {
 }
 
 // equals return true if and only if m and n are both minterm, then they are semantically equals
-func equals(m, n minterm) bool {
+func equals(m, n Term) bool {
 	if len(m) != len(n) {
 		return false
 	}
@@ -178,7 +178,7 @@ func equals(m, n minterm) bool {
 }
 
 // positives returns the number of positive identifiers
-func positives(m minterm) int {
+func positives(m Term) int {
 	count := 0
 	for _, v := range m {
 		if v {
@@ -188,9 +188,9 @@ func positives(m minterm) int {
 	return count
 }
 
-//inter computes the intersection of x inter  y
-func inter(x, y minterm) minterm {
-	res := make(minterm)
+// inter computes the intersection of x inter  y
+func inter(x, y Term) Term {
+	res := make(Term)
 	for k, v := range x {
 		if w, exists := y[k]; exists && v == w {
 			res[k] = v
@@ -200,10 +200,10 @@ func inter(x, y minterm) minterm {
 
 }
 
-//div computes x/y i.e z so that And(z,y) = x
+// div computes x/y i.e z so that And(z,y) = x
 // can be seen as x removed from items in y
-func div(x, y minterm) minterm {
-	res := make(minterm)
+func div(x, y Term) Term {
+	res := make(Term)
 	for k, v := range x {
 		if w, exists := y[k]; !exists || v != w {
 			res[k] = v

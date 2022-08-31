@@ -6,35 +6,34 @@ package boolgebra
 // Lit returns an Expr equivalent to a boolean literal 'val'
 func Lit(val bool) Expr {
 	if val {
-		return minterm{} // true is by definition an empty minterm ( neutral for product)
+		return Expr{Term{}} // true is by definition an empty minterm ( neutral for product)
 	} else {
-		return expression{} // false is an empty expression (neutral for sum)
+		return Expr{} // false is an empty expression (neutral for sum)
 	}
 }
 
 // ID returns an Expr equivalent to a single ID 'id'
-func ID(id string) Expr { return minterm{id: true} }
+func ID(id string) Expr { return Expr{Term{id: true}} }
 
 // Or return the conjunction of all the expression passed in parameter.
 //
 // By convention, if 'x' is empty it returns Lit(false). See https://en.wikipedia.org/wiki/Empty_sum
 func Or(x ...Expr) Expr {
 	// start with the neutral of the Or i.e a false
-	res := make(expression, 0)
+	res := make(Expr, 0)
 	// scan all terms, in all expr
 	for _, exp := range x {
-		for i := 0; i < exp.Terms(); i++ {
-			t := exp.Term(i)
-			if t.Is(true) {
-				return t //
+		for _, t := range exp {
+			if t.isLiteral(true) {
+				return Expr{Term{}}
 			}
-			if !t.Is(false) { // if this is the literal false, we can just skip it
-				res = append(res, t.(minterm))
+			if !t.isLiteral(false) { // if this is the literal false, we can just skip it
+				res = append(res, t)
 			}
 		}
 	}
 	if len(res) == 1 {
-		return res[0]
+		return Expr{res[0]}
 	}
 	return res
 }
@@ -62,26 +61,24 @@ func And(expressions ...Expr) Expr {
 	// this is the only real case
 	x, y := expressions[0], expressions[1]
 
-	if x.Is(false) || y.Is(false) {
+	if x.isLiteral(false) || y.isLiteral(false) {
 		return Lit(false)
 	}
 
-	if x.Is(true) {
+	if x.isLiteral(true) {
 		return y
 	}
-	if y.Is(true) {
+	if y.isLiteral(true) {
 		return x
 	}
 
 	// general case
-	z := make(expression, 0, x.Terms()*y.Terms())
+	z := make(Expr, 0, len(x)*len(y))
 	// this is the big one: all terms from x multiplied by terms from y
-	for i := 0; i < x.Terms(); i++ {
-		m := x.Term(i).(minterm)
+	for _, m := range x {
 
 	product:
-		for j := 0; j < y.Terms(); j++ {
-			n := y.Term(j).(minterm)
+		for _, n := range y {
 
 			// compute the real m && n , this is basically a merge of all IDs
 			// there is one special case: A & A' = false
@@ -93,7 +90,7 @@ func And(expressions ...Expr) Expr {
 			}
 
 			// basic merge
-			o := make(minterm)
+			o := make(Term)
 			for k, v := range m {
 				o[k] = v
 			}
@@ -113,12 +110,7 @@ func Not(x Expr) Expr { return x.Not() }
 
 // Simplify returns a simpler version of 'x' by applying simplification rules.
 func Simplify(x Expr) Expr {
-	switch e := x.(type) {
-	case expression:
-		return reduce(e)
-	default:
-		return x // unchanged
-	}
+	return reduce(x)
 }
 
 // Factor computes the greatest common factor between terms of x
@@ -127,30 +119,27 @@ func Simplify(x Expr) Expr {
 //
 // x is currently a sum of terms, this function returns f and rem so that
 //
-//    x = And(f, rem)
-//    f.Terms() ==1 : it's a minterm
-//
+//	x = And(f, rem)
+//	f.Terms() ==1 : it's a minterm
 func Factor(x Expr) (f, rem Expr) {
-	var res minterm
-	for i := 0; i < x.Terms(); i++ {
-		m := x.Term(i).(minterm)
+	var res Term
+	for i, m := range x {
 		if i == 0 {
 			// special case for the first one, need to init the thing
 			res = m
 		}
 		res = inter(res, m)
 		if len(res) == 0 {
-			return expression{res}, x // empty one
+			return Expr{res}, x // empty one
 		}
 	}
 	// now for each minterm recompute the reminder
 
-	r := expression{}
-	for i := 0; i < x.Terms(); i++ {
-		m := x.Term(i).(minterm)
+	r := Expr{}
+	for _, m := range x {
 		r = append(r, div(m, res))
 	}
 
-	return expression{res}, r
+	return Expr{res}, r
 
 }

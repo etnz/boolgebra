@@ -13,10 +13,10 @@ func ExampleID() {
 
 // TesLit ensure that the basic true and false are working accordingly with Is(bool)
 func TestLit(t *testing.T) {
-	if !Lit(true).Is(true) {
+	if !Lit(true).isLiteral(true) {
 		t.Error("Lit(true).Is(true) must be true")
 	}
-	if !Lit(false).Is(false) {
+	if !Lit(false).isLiteral(false) {
 		t.Error("Lit(false).Is(false) must be true")
 	}
 }
@@ -72,7 +72,7 @@ func ExampleOr() {
 }
 
 func truthTester(t *testing.T, label string, z Expr, expected bool) {
-	if !z.Is(expected) {
+	if !z.isLiteral(expected) {
 		t.Errorf("%s: expected %v got %v", label, expected, z)
 	}
 }
