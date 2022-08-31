@@ -1,41 +1,30 @@
 package boolgebra
 
 import (
+	"fmt"
 	"sort"
 	"strconv"
 	"strings"
 )
 
 type (
-	// expression is boolean algebra expression as a sum of prod of minterms.
+	// Expr is boolean algebra Expr as a sum of prod of minterms.
 	// As such it is a slice of minterms. It must be considered as a set
 	//
-	// an empty expression is always false ( and this is the definition of false
+	// an empty Expr is always false ( and this is the definition of false
 	//
-	expression []minterm
+	Expr[T comparable] []Term[T]
 
-	//minterm is a product of identifier or their negation. For instance
-	// mintern  "AB'D" <=> "A or Not(B) or D" is coded as minterm{ "A":true, "B":false, "D":true}
+	//Term is a product of identifiers or their negation. For instance
+	// mintern  "AB'D" <=> "A or Not(B) or D" is coded as Term{ "A":true, "B":false, "D":true}
 	//
-	// it is conventional that https://en.wikipedia.org/wiki/Empty_product the empty minterm is 1 the neutral for prod ( and for and too)
+	// it is conventional that https://en.wikipedia.org/wiki/Empty_product the empty Term is 1 the neutral for prod ( and for and too)
 	//
-	minterm map[string]bool
-
-	// Expr is the interface that all elements of a boolean algebra share
-	Expr interface {
-		String() string
-		// return the negation of receiver
-		Not() Expr
-		// Is return true if the Expr is literally equals to value
-		Is(val bool) bool
-		Terms() int
-		Term(i int) Expr
-		IDs() (ids map[string]struct{})
-	}
+	Term[T comparable] map[T]bool
 )
 
 // String return the literal representation (using primary functions) of the current expression.
-func (x expression) String() string {
+func (x Expr[T]) String() string {
 	if len(x) == 0 {
 		return "Lit(false)"
 	}
@@ -54,51 +43,75 @@ func (x expression) String() string {
 	return "Or(" + strings.Join(terms, ", ") + ")"
 }
 
-//String return the literal representation (using primary functions) of the current minterm
-func (m minterm) String() string {
+// String return the literal representation (using primary functions) of the current minterm
+func (m Term[T]) String() string {
 	if len(m) == 0 {
 		return "Lit(true)"
 	}
 
-	var terms []string
+	terms := make([]T, 0, len(m))
 	for k := range m {
 		terms = append(terms, k)
 	}
-	sort.Strings(terms)
+	var sTerms []string
+	switch s := any(terms).(type) {
+	case []string:
+		sort.Strings(s)
+		sTerms = s
+	case []int:
+		sort.Ints(s)
+	default:
+		sTerms = make([]string, len(terms))
+		for i := range terms {
+			sTerms[i] = fmt.Sprintf("%v", terms[i])
+		}
+
+		sort.Slice(sTerms, func(i, j int) bool {
+			return sTerms[i] < sTerms[j]
+		})
+	}
+	if sTerms != nil {
+		sTerms = make([]string, len(terms))
+		for i := range terms {
+			sTerms[i] = fmt.Sprintf("%v", terms[i])
+		}
+	}
+
 	for i, t := range terms {
+		s := sTerms[i]
 		if !m[t] {
-			terms[i] = "Not(" + strconv.Quote(t) + ")"
+			sTerms[i] = "Not(" + strconv.Quote(s) + ")"
 		} else {
-			terms[i] = strconv.Quote(t)
+			sTerms[i] = strconv.Quote(s)
 		}
 	}
 	if len(terms) == 1 {
-		return terms[0]
+		return sTerms[0]
 	} else {
-		return "And(" + strings.Join(terms, ", ") + ")"
+		return "And(" + strings.Join(sTerms, ", ") + ")"
 	}
 }
 
 // NOT
 
-func (x expression) Not() Expr {
-	factors := make([]Expr, 0, len(x))
+func (x Expr[T]) Not() Expr[T] {
+	factors := make([]Expr[T], 0, len(x))
 	for _, e := range x {
 		factors = append(factors, e.Not())
 	}
 	return And(factors...)
 
 }
-func (m minterm) Not() Expr {
-	res := make(expression, 0, len(m))
+func (m Term[T]) Not() Expr[T] {
+	res := make(Expr[T], 0, len(m))
 	for k, v := range m {
-		res = append(res, minterm{string(k): !v})
+		res = append(res, Term[T]{k: !v})
 	}
 	return res
 }
 
-//Is return true if this expression is equals to val
-func (x expression) Is(val bool) bool {
+// Is return true if this expression is equals to val
+func (x Expr[T]) isLiteral(val bool) bool {
 	if val {
 		return len(x) == 1 && len(x[0]) == 0
 	} else {
@@ -106,36 +119,14 @@ func (x expression) Is(val bool) bool {
 	}
 }
 
-//Is return true if this expression is equals to val
-func (m minterm) Is(val bool) bool {
+// Is return true if this expression is equals to val
+func (m Term[T]) isLiteral(val bool) bool {
 	return val && len(m) == 0
 }
 
-//Terms retuns the number of terms in this expression
-func (x expression) Terms() int { return len(x) }
-
-//Terms retuns the number of terms in this expression
-func (m minterm) Terms() int { return 1 }
-
-//Term retuns the ith terms. Panic if out of bounds ( negative, or >= Terms())
-func (x expression) Term(i int) Expr {
-	if i < 0 || i >= x.Terms() {
-		panic("Term is not defined for this index value")
-	}
-	return x[i]
-}
-
-//Term retuns the ith terms. Panic if out of bounds ( negative, or >= Terms())
-func (m minterm) Term(i int) Expr {
-	if i != 0 {
-		panic("Term is not defined for this index value")
-	}
-	return m
-}
-
 // IDs return the set of ID in this expression
-func (x expression) IDs() (ids map[string]struct{}) {
-	ids = make(map[string]struct{})
+func (x Expr[T]) IDs() (ids map[T]struct{}) {
+	ids = make(map[T]struct{})
 	for _, m := range x {
 		for k := range m {
 			ids[k] = struct{}{}
@@ -145,8 +136,8 @@ func (x expression) IDs() (ids map[string]struct{}) {
 }
 
 // IDs return the set of ID in this expression
-func (m minterm) IDs() (ids map[string]struct{}) {
-	ids = make(map[string]struct{})
+func (m Term[T]) IDs() (ids map[T]struct{}) {
+	ids = make(map[T]struct{})
 	for k := range m {
 		ids[k] = struct{}{}
 	}

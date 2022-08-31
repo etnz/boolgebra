@@ -1,29 +1,31 @@
 package smullyan
 
-import "github.com/etnz/permute"
-import . "github.com/etnz/boolgebra"
+import (
+	. "github.com/etnz/boolgebra"
+	"github.com/etnz/permute"
+)
 
 //counting.go holds the function relative to counting, like Exactly or AtMost
 
 // Exactly retuns an expression that is true if and only if exactly 'i' terms are True.
 //
 // This is the Or() of and And() of all the i-subsets of terms
-func Exactly(i int, terms ...Expr) Expr {
-	return quantified(i, identity, Not, terms...)
+func Exactly[T comparable](i int, terms ...Expr[T]) Expr[T] {
+	return quantified(i, identity[T], Not[T], terms...)
 }
 
 // AtMost retuns an expression that is true if and only if at most 'i' terms are True.
-func AtMost(i int, terms ...Expr) Expr {
-	return quantified(i, truth, Not, terms...)
+func AtMost[T comparable](i int, terms ...Expr[T]) Expr[T] {
+	return quantified(i, truth[T], Not[T], terms...)
 }
 
 // AtLeast retuns an expression that is true if and only if at least 'i' terms are True.
-func AtLeast(i int, terms ...Expr) Expr {
-	return quantified(i, identity, truth, terms...)
+func AtLeast[T comparable](i int, terms ...Expr[T]) Expr[T] {
+	return quantified(i, identity[T], truth[T], terms...)
 }
 
-func identity(x Expr) Expr { return x }
-func truth(x Expr) Expr    { return Lit(true) }
+func identity[T comparable](x Expr[T]) Expr[T] { return x }
+func truth[T comparable](x Expr[T]) Expr[T]    { return Lit[T](true) }
 
 // quantifier returns Or ( And( f(p,p')) )where:
 // p is a subset of terms, p' is the complement ( remain terms)
@@ -33,13 +35,13 @@ func truth(x Expr) Expr    { return Lit(true) }
 // - for Atmost: we just need to build those with p'
 //
 // therefore we defined two simple function fp(Expr) and fp' accordingly
-func quantified(i int, f, g func(x Expr) Expr, terms ...Expr) Expr {
+func quantified[T comparable](i int, f, g func(x Expr[T]) Expr[T], terms ...Expr[T]) Expr[T] {
 
-	p := subid(i)  // the slice of indices starting at identify, always
-	var ors []Expr // all ands to be Or()ed
+	p := subid(i)     // the slice of indices starting at identify, always
+	var ors []Expr[T] // all ands to be Or()ed
 
 	for ok := true; ok; ok = nextsubset(p, len(terms)) {
-		res := make([]Expr, 0, len(terms))
+		res := make([]Expr[T], 0, len(terms))
 		c := complement(p, len(terms))
 
 		for _, i := range p {

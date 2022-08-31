@@ -6,7 +6,7 @@ package boolgebra
 // Impl returns the logical implication of A,B
 //
 // see https://en.wikipedia.org/wiki/Boolean_algebra#Secondary_operations
-func Impl(A, B Expr) Expr {
+func Impl[T comparable](A, B Expr[T]) Expr[T] {
 	return Or(Not(A), B)
 }
 
@@ -15,16 +15,16 @@ func Impl(A, B Expr) Expr {
 // It can also be the logical equivalence A <=> B. Both are in fact the same boolean function.
 //
 // see https://en.wikipedia.org/wiki/Boolean_algebra#Secondary_operations
-func Eq(A, B Expr) Expr { return Or(And(Not(A), Not(B)), And(A, B)) }
+func Eq[T comparable](A, B Expr[T]) Expr[T] { return Or(And(Not(A), Not(B)), And(A, B)) }
 
 // Xor returns the logical Xor
 //
 // see https://en.wikipedia.org/wiki/Boolean_algebra#Secondary_operations
-func Xor(A, B Expr) Expr { return Or(And(A, Not(B)), And(Not(A), B)) }
+func Xor[T comparable](A, B Expr[T]) Expr[T] { return Or(And(A, Not(B)), And(Not(A), B)) }
 
 // Neq returns the logical '!='
 //
 // It is the same as Xor.
 //
 // see https://en.wikipedia.org/wiki/Boolean_algebra#Secondary_operations
-func Neq(A, B Expr) Expr { return Xor(A, B) }
+func Neq[T comparable](A, B Expr[T]) Expr[T] { return Xor(A, B) }
