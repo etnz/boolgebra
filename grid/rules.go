@@ -8,20 +8,30 @@ import (
 )
 
 // creates an ID that means property name = value
-// just for test, not safe for any kind of injection
-func P(name, value string) Expr { return ID(name + "=" + value) }
+func P[T comparable](name, value T) Expr[Pair[T]] {
+	return ID(Pair[T]{Key: name, Val: value})
+}
+
+type Pair[T comparable] struct {
+	Val T
+	Key T
+}
+
+func (p Pair[T]) String() string {
+	return fmt.Sprintf("%v=%v", p.Key, p.Val)
+}
 
 // Values is a list all possible values without repetition
 //
 // a Group is a subset of Values, Groups is the set of all defined Group, N is card(Groups)
 //
-// Let's define 'R' an transitive and symetric relation in Values noted `\forall x,y \in Values xRy`
+// Let's define 'R' an transitive and symmetric relation in Values noted `\forall x,y \in Values xRy`
 //
 //  1. `\forall g,h \in Groups² |g| = |h| \and g \inter h = \phi`
 //  2. `\forall G \in Groups, \forall v \notin G \exists! w in G vRw`
 //
 // groups are defined by to position in the list
-func Rules(N int, values ...string) Expr {
+func Rules[T comparable](N int, values ...T) Expr[Pair[T]] {
 
 	if len(values)%N != 0 {
 		panic(fmt.Sprintf("inconsistent number of values %d with number of groups %d (not divisible)", len(values), N))
@@ -30,7 +40,7 @@ func Rules(N int, values ...string) Expr {
 	M := len(values) / N
 
 	{ // the following code is in a a block 'cause I don't keep anyting from here the index is purely local, and temporary
-		index := make(map[string]struct{}) // index values (that shall be unique)
+		index := make(map[T]struct{}) // index values (that shall be unique)
 		for _, v := range values {
 			index[v] = struct{}{}
 		}
@@ -82,16 +92,16 @@ func Rules(N int, values ...string) Expr {
 	}
 
 	//rules := make([]map[string]bool, 0) // the game rules will be an Or() of all possible solutions
-	rules := Lit(false)
+	rules := Lit[Pair[T]](false)
 	for ok := true; ok; ok = next() { // loop over all columns x all permutations, and break when done
 
-		var tb TermBuilder // build a big AND expression
+		var tb TermBuilder[Pair[T]] // build a big AND expression
 
 		// for the given solution, scan all possible ID ( "Paul is 6yo") wether it is true or not
 		for i, v := range values {
 			for j, w := range values {
 				if i != j {
-					tb.And(v+"="+w, whois(i) == whois(j))
+					tb.And(Pair[T]{v, w}, whois(i) == whois(j))
 				}
 			}
 		}
@@ -104,9 +114,9 @@ func Rules(N int, values ...string) Expr {
 	return rules
 }
 
-func Solve(nbproperties int, values []string, hints ...Expr) Expr {
+func Solve[T comparable](nbproperties int, values []T, hints ...Expr[Pair[T]]) Expr[Pair[T]] {
 
-	rules := []Expr{}
+	rules := []Expr[Pair[T]]{}
 	rules = append(rules, Rules(nbproperties, values...))
 	rules = append(rules, hints...)
 	return Simplify(And(rules...))

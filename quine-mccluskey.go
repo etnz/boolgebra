@@ -2,15 +2,15 @@ package boolgebra
 
 // Quine-McCluskey is an algorithm to simplify a sum of prod.
 
-// reduce combine together all minterms of x into prime implicants
-func reduce(x Expr) Expr {
+// Simplify returns a simpler version of 'x' by applying simplification rules.
+func Simplify[T comparable](x Expr[T]) Expr[T] {
 	// to reduce we need to cluster minterms of x into number of non neg ID
 
-	var cluster [][]Term // index minterm by their 1s. store them in a slice
-	var primes []Term    // also keep primes all together
+	var cluster [][]Term[T] // index minterm by their 1s. store them in a slice
+	var primes []Term[T]    // also keep primes all together
 
 	// fill the first cluster
-	cluster = make([][]Term, 1+len(x.IDs()))
+	cluster = make([][]Term[T], 1+len(x.IDs()))
 	for _, m := range x {
 		ones := positives(m)
 		cluster[ones] = append(cluster[ones], m)
@@ -20,7 +20,7 @@ func reduce(x Expr) Expr {
 	for !emptycluster {
 		// the next cluster will become the current one soon, so we already set the bool to true, because we start with an empty one
 		emptycluster = true // we start with an empty next one, let see if it get filled
-		next := make([][]Term, len(cluster))
+		next := make([][]Term[T], len(cluster))
 
 		// attempt all possible combinations.
 		// a minterm with n Positive IDs, can only be combined with another one with n or n+1 ( or n-1 but combination is symetric so we don't care)
@@ -94,12 +94,12 @@ func reduce(x Expr) Expr {
 		cluster = next
 	}
 	//done, we now have all the prime implicant
-	return Expr(primes)
+	return Expr[T](primes)
 }
 
 // appenunique behave like 'append' except for items in 'terms' that are present in 'set': they
 // are not appended in this case.
-func appendunique(set []Term, terms ...Term) []Term {
+func appendunique[T comparable](set []Term[T], terms ...Term[T]) []Term[T] {
 termsloop:
 	for _, m := range terms {
 		for _, x := range set {
@@ -118,11 +118,11 @@ termsloop:
 // x and y must be identical but on exactly one identifier.
 //
 // the combined is then then intersection of x and y.
-func combine(x, y Term) (c Term, ok bool) {
+func combine[T comparable](x, y Term[T]) (c Term[T], ok bool) {
 	// alg: find out the one and only one difference between x,y
 	// so scan for differences and count.
-	var d string // the identifier that is different (if diffs == 1))
-	diffs := 0   // number of differences
+	var d T    // the identifier that is different (if diffs == 1))
+	diffs := 0 // number of differences
 	for k, v := range x {
 		w, exists := y[k]
 		if !exists || v != w {
@@ -154,7 +154,7 @@ func combine(x, y Term) (c Term, ok bool) {
 	// build c accordingly then
 	// x and y are guaranteed to be identical but on 'd'
 	// so copy x but 'd'
-	c = make(Term)
+	c = make(Term[T])
 	for k, v := range x {
 		if k != d {
 			c[k] = v
@@ -165,7 +165,7 @@ func combine(x, y Term) (c Term, ok bool) {
 }
 
 // equals return true if and only if m and n are both minterm, then they are semantically equals
-func equals(m, n Term) bool {
+func equals[T comparable](m, n Term[T]) bool {
 	if len(m) != len(n) {
 		return false
 	}
@@ -178,7 +178,7 @@ func equals(m, n Term) bool {
 }
 
 // positives returns the number of positive identifiers
-func positives(m Term) int {
+func positives[T comparable](m Term[T]) int {
 	count := 0
 	for _, v := range m {
 		if v {
@@ -189,8 +189,8 @@ func positives(m Term) int {
 }
 
 // inter computes the intersection of x inter  y
-func inter(x, y Term) Term {
-	res := make(Term)
+func inter[T comparable](x, y Term[T]) Term[T] {
+	res := make(Term[T])
 	for k, v := range x {
 		if w, exists := y[k]; exists && v == w {
 			res[k] = v
@@ -202,8 +202,8 @@ func inter(x, y Term) Term {
 
 // div computes x/y i.e z so that And(z,y) = x
 // can be seen as x removed from items in y
-func div(x, y Term) Term {
-	res := make(Term)
+func div[T comparable](x, y Term[T]) Term[T] {
+	res := make(Term[T])
 	for k, v := range x {
 		if w, exists := y[k]; !exists || v != w {
 			res[k] = v

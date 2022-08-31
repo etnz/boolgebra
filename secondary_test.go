@@ -4,8 +4,8 @@ import "testing"
 
 func Test_truthTables2(t *testing.T) {
 
-	T := Lit(true)
-	F := Lit(false)
+	T := Lit[string](true)
+	F := Lit[string](false)
 
 	//XOr
 	truthTester(t, "Xor(F,F)", Xor(F, F), false)

@@ -11,7 +11,7 @@ import (
 // This benchmark is to show that, in comparision with BenchmarkTermBuilder
 func BenchmarkAnd(b *testing.B) {
 
-	res := Lit(true) // neutral for And
+	res := Lit[string](true) // neutral for And
 	// prepare 1000 different ids
 	M := 1000
 	var ids []string
@@ -36,7 +36,7 @@ func BenchmarkTermBuilder(b *testing.B) {
 	for i := 0; i < M; i++ {
 		ids = append(ids, "parameter_"+strconv.Itoa(i))
 	}
-	var t TermBuilder
+	var t TermBuilder[string]
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		t.And(ids[i%M], true)

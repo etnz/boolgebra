@@ -1,18 +1,18 @@
 package boolgebra
 
 // TermBuilder can be used to efficiently append ID ( or Not(ID)) into a big And
-type TermBuilder struct {
+type TermBuilder[T comparable] struct {
 	isLitFalse bool
-	m          Term
+	m          Term[T]
 }
 
 // And append a variable to the current term
-func (t *TermBuilder) And(id string, val bool) {
+func (t *TermBuilder[T]) And(id T, val bool) {
 	if t.isLitFalse {
 		return
 	} // nothing to do
 	if t.m == nil {
-		t.m = make(Term)
+		t.m = make(Term[T])
 	}
 	if prev, exists := t.m[id]; exists && prev != val {
 		//attempt to do something like  AND(x, !x) which is always false therefore the result will always be Lit(false)
@@ -24,14 +24,14 @@ func (t *TermBuilder) And(id string, val bool) {
 }
 
 // IsFalse returns true if the term under construction is already degenerated to False
-func (t TermBuilder) IsFalse() bool { return t.isLitFalse }
+func (t TermBuilder[T]) IsFalse() bool { return t.isLitFalse }
 
-func (t *TermBuilder) Build() Expr {
+func (t *TermBuilder[T]) Build() Expr[T] {
 	if t.isLitFalse {
 		t.isLitFalse = false // reset it
-		return Lit(false)
+		return Lit[T](false)
 	}
 	res := t.m
 	t.m = nil // destroy reference to m to avoid editing it anymore
-	return Expr{res}
+	return Expr[T]{res}
 }

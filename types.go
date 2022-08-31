@@ -1,6 +1,7 @@
 package boolgebra
 
 import (
+	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -12,18 +13,18 @@ type (
 	//
 	// an empty Expr is always false ( and this is the definition of false
 	//
-	Expr []Term
+	Expr[T comparable] []Term[T]
 
 	//Term is a product of identifiers or their negation. For instance
 	// mintern  "AB'D" <=> "A or Not(B) or D" is coded as Term{ "A":true, "B":false, "D":true}
 	//
 	// it is conventional that https://en.wikipedia.org/wiki/Empty_product the empty Term is 1 the neutral for prod ( and for and too)
 	//
-	Term map[string]bool
+	Term[T comparable] map[T]bool
 )
 
 // String return the literal representation (using primary functions) of the current expression.
-func (x Expr) String() string {
+func (x Expr[T]) String() string {
 	if len(x) == 0 {
 		return "Lit(false)"
 	}
@@ -43,50 +44,74 @@ func (x Expr) String() string {
 }
 
 // String return the literal representation (using primary functions) of the current minterm
-func (m Term) String() string {
+func (m Term[T]) String() string {
 	if len(m) == 0 {
 		return "Lit(true)"
 	}
 
-	var terms []string
+	terms := make([]T, 0, len(m))
 	for k := range m {
 		terms = append(terms, k)
 	}
-	sort.Strings(terms)
+	var sTerms []string
+	switch s := any(terms).(type) {
+	case []string:
+		sort.Strings(s)
+		sTerms = s
+	case []int:
+		sort.Ints(s)
+	default:
+		sTerms = make([]string, len(terms))
+		for i := range terms {
+			sTerms[i] = fmt.Sprintf("%v", terms[i])
+		}
+
+		sort.Slice(sTerms, func(i, j int) bool {
+			return sTerms[i] < sTerms[j]
+		})
+	}
+	if sTerms != nil {
+		sTerms = make([]string, len(terms))
+		for i := range terms {
+			sTerms[i] = fmt.Sprintf("%v", terms[i])
+		}
+	}
+
 	for i, t := range terms {
+		s := sTerms[i]
 		if !m[t] {
-			terms[i] = "Not(" + strconv.Quote(t) + ")"
+			sTerms[i] = "Not(" + strconv.Quote(s) + ")"
 		} else {
-			terms[i] = strconv.Quote(t)
+			sTerms[i] = strconv.Quote(s)
 		}
 	}
 	if len(terms) == 1 {
-		return terms[0]
+		return sTerms[0]
 	} else {
-		return "And(" + strings.Join(terms, ", ") + ")"
+		return "And(" + strings.Join(sTerms, ", ") + ")"
 	}
 }
 
 // NOT
 
-func (x Expr) Not() Expr {
-	factors := make([]Expr, 0, len(x))
+func (x Expr[T]) Not() Expr[T] {
+	factors := make([]Expr[T], 0, len(x))
 	for _, e := range x {
 		factors = append(factors, e.Not())
 	}
 	return And(factors...)
 
 }
-func (m Term) Not() Expr {
-	res := make(Expr, 0, len(m))
+func (m Term[T]) Not() Expr[T] {
+	res := make(Expr[T], 0, len(m))
 	for k, v := range m {
-		res = append(res, Term{string(k): !v})
+		res = append(res, Term[T]{k: !v})
 	}
 	return res
 }
 
 // Is return true if this expression is equals to val
-func (x Expr) isLiteral(val bool) bool {
+func (x Expr[T]) isLiteral(val bool) bool {
 	if val {
 		return len(x) == 1 && len(x[0]) == 0
 	} else {
@@ -95,13 +120,13 @@ func (x Expr) isLiteral(val bool) bool {
 }
 
 // Is return true if this expression is equals to val
-func (m Term) isLiteral(val bool) bool {
+func (m Term[T]) isLiteral(val bool) bool {
 	return val && len(m) == 0
 }
 
 // IDs return the set of ID in this expression
-func (x Expr) IDs() (ids map[string]struct{}) {
-	ids = make(map[string]struct{})
+func (x Expr[T]) IDs() (ids map[T]struct{}) {
+	ids = make(map[T]struct{})
 	for _, m := range x {
 		for k := range m {
 			ids[k] = struct{}{}
@@ -111,8 +136,8 @@ func (x Expr) IDs() (ids map[string]struct{}) {
 }
 
 // IDs return the set of ID in this expression
-func (m Term) IDs() (ids map[string]struct{}) {
-	ids = make(map[string]struct{})
+func (m Term[T]) IDs() (ids map[T]struct{}) {
+	ids = make(map[T]struct{})
 	for k := range m {
 		ids[k] = struct{}{}
 	}
