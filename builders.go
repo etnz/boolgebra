@@ -3,7 +3,7 @@ package boolgebra
 // TermBuilder can be used to efficiently append ID ( or Not(ID)) into a big And
 type TermBuilder struct {
 	isLitFalse bool
-	m          minterm
+	m          Term
 }
 
 // And append a variable to the current term
@@ -12,7 +12,7 @@ func (t *TermBuilder) And(id string, val bool) {
 		return
 	} // nothing to do
 	if t.m == nil {
-		t.m = make(minterm)
+		t.m = make(Term)
 	}
 	if prev, exists := t.m[id]; exists && prev != val {
 		//attempt to do something like  AND(x, !x) which is always false therefore the result will always be Lit(false)
@@ -33,5 +33,5 @@ func (t *TermBuilder) Build() Expr {
 	}
 	res := t.m
 	t.m = nil // destroy reference to m to avoid editing it anymore
-	return res
+	return Expr{res}
 }

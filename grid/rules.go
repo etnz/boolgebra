@@ -17,8 +17,8 @@ func P(name, value string) Expr { return ID(name + "=" + value) }
 //
 // Let's define 'R' an transitive and symetric relation in Values noted `\forall x,y \in Values xRy`
 //
-//     1. `\forall g,h \in Groups² |g| = |h| \and g \inter h = \phi`
-//     2. `\forall G \in Groups, \forall v \notin G \exists! w in G vRw`
+//  1. `\forall g,h \in Groups² |g| = |h| \and g \inter h = \phi`
+//  2. `\forall G \in Groups, \forall v \notin G \exists! w in G vRw`
 //
 // groups are defined by to position in the list
 func Rules(N int, values ...string) Expr {
