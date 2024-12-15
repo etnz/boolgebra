@@ -2,7 +2,6 @@ package boolgebra
 
 import (
 	"sort"
-	"strconv"
 	"strings"
 )
 
@@ -37,7 +36,7 @@ type (
 // String return the literal representation (using primary functions) of the current expression.
 func (x expression) String() string {
 	if len(x) == 0 {
-		return "Lit(false)"
+		return "false"
 	}
 	if len(x) == 1 {
 		return x[0].String()
@@ -48,16 +47,13 @@ func (x expression) String() string {
 		terms = append(terms, k.String())
 	}
 
-	if len(terms) > 3 {
-		return "Or(\n    " + strings.Join(terms, ",\n    ") + "\n)"
-	}
-	return "Or(" + strings.Join(terms, ", ") + ")"
+	return strings.Join(terms, " | ")
 }
 
-//String return the literal representation (using primary functions) of the current minterm
+// String return the literal representation (using primary functions) of the current minterm
 func (m minterm) String() string {
 	if len(m) == 0 {
-		return "Lit(true)"
+		return "true"
 	}
 
 	var terms []string
@@ -67,15 +63,23 @@ func (m minterm) String() string {
 	sort.Strings(terms)
 	for i, t := range terms {
 		if !m[t] {
-			terms[i] = "Not(" + strconv.Quote(t) + ")"
+			identifiers := strings.Split(t, " ")
+			if len(identifiers) < 3 { // short id, use 'not id'
+				identifiers = append([]string{"not"}, identifiers...)
+			} else { // put a not in third position (typical for 'a is not x')
+				identifiers = append(identifiers, "not") // Ensure capacity.
+				copy(identifiers[3:], identifiers[2:])   // Shift index up.
+				identifiers[2] = "not"                   // Insert item.
+			}
+			terms[i] = strings.Join(identifiers, " ")
 		} else {
-			terms[i] = strconv.Quote(t)
+			terms[i] = t
 		}
 	}
 	if len(terms) == 1 {
 		return terms[0]
 	} else {
-		return "And(" + strings.Join(terms, ", ") + ")"
+		return strings.Join(terms, " & ")
 	}
 }
 
@@ -97,7 +101,7 @@ func (m minterm) Not() Expr {
 	return res
 }
 
-//Is return true if this expression is equals to val
+// Is return true if this expression is equals to val
 func (x expression) Is(val bool) bool {
 	if val {
 		return len(x) == 1 && len(x[0]) == 0
@@ -106,18 +110,18 @@ func (x expression) Is(val bool) bool {
 	}
 }
 
-//Is return true if this expression is equals to val
+// Is return true if this expression is equals to val
 func (m minterm) Is(val bool) bool {
 	return val && len(m) == 0
 }
 
-//Terms retuns the number of terms in this expression
+// Terms retuns the number of terms in this expression
 func (x expression) Terms() int { return len(x) }
 
-//Terms retuns the number of terms in this expression
+// Terms retuns the number of terms in this expression
 func (m minterm) Terms() int { return 1 }
 
-//Term retuns the ith terms. Panic if out of bounds ( negative, or >= Terms())
+// Term retuns the ith terms. Panic if out of bounds ( negative, or >= Terms())
 func (x expression) Term(i int) Expr {
 	if i < 0 || i >= x.Terms() {
 		panic("Term is not defined for this index value")
@@ -125,7 +129,7 @@ func (x expression) Term(i int) Expr {
 	return x[i]
 }
 
-//Term retuns the ith terms. Panic if out of bounds ( negative, or >= Terms())
+// Term retuns the ith terms. Panic if out of bounds ( negative, or >= Terms())
 func (m minterm) Term(i int) Expr {
 	if i != 0 {
 		panic("Term is not defined for this index value")

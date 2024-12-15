@@ -8,7 +8,7 @@ import (
 func ExampleID() {
 	A := ID("A")
 	fmt.Println(A)
-	//Output: "A"
+	//Output: A
 }
 
 // TesLit ensure that the basic true and false are working accordingly with Is(bool)
@@ -28,8 +28,8 @@ func ExampleLit() {
 	B := Lit(false)
 	fmt.Println(B)
 	//Output:
-	// Lit(true)
-	// Lit(false)
+	// true
+	// false
 }
 
 func ExampleNot() {
@@ -37,9 +37,9 @@ func ExampleNot() {
 	fmt.Println(Not(Lit(true)))
 	fmt.Println(Not(Lit(false)))
 	//Output:
-	// Not("A")
-	// Lit(false)
-	// Lit(true)
+	// not A
+	// false
+	// true
 }
 
 func ExampleAnd() {
@@ -51,10 +51,10 @@ func ExampleAnd() {
 	fmt.Println(And(A, B, C))
 	fmt.Println(And(A, Not(B)))
 	//Output:
-	// "A"
-	// Lit(false)
-	// And("A", "B", "C")
-	// And("A", Not("B"))
+	// A
+	// false
+	// A & B & C
+	// A & not B
 }
 
 func ExampleOr() {
@@ -66,9 +66,9 @@ func ExampleOr() {
 	fmt.Println(Or(A, Lit(false)))
 	fmt.Println(Or(A, Not(B)))
 	//Output:
-	// Lit(true)
-	// "A"
-	// Or("A", Not("B"))
+	// true
+	// A
+	// A | not B
 }
 
 func truthTester(t *testing.T, label string, z Expr, expected bool) {

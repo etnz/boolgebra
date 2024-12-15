@@ -1,9 +1,9 @@
 package smullyan
 
-import . "github.com/etnz/boolgebra"
-
 import (
 	"fmt"
+
+	. "github.com/etnz/boolgebra"
 )
 
 // smullyan_test.go holds examples taken from Raymond Smullyan "Satan, Cantor and Infinity"
@@ -39,7 +39,7 @@ func ExampleSimplify_smullyan1() {
 
 	fmt.Println(Simplify(And(Fact1, Fact2)))
 	//Output:
-	// And(Not("A is a Knight"), "B is a Knight", Not("C is a Knight"))
+	// A is not a Knight & B is a Knight & C is not a Knight
 
 }
 
@@ -75,7 +75,7 @@ func ExampleSimplify_smullyan2() {
 	fmt.Println(Simplify(And(Fact1, Fact2, Fact3, Fact4)))
 
 	//Output:
-	// And(Not("A is a Knight"), Not("A is a Sorcerer"), Not("B is a Knight"), Not("B is a Sorcerer"), "C is a Knight", "C is a Sorcerer")
+	// A is not a Knight & A is not a Sorcerer & B is not a Knight & B is not a Sorcerer & C is a Knight & C is a Sorcerer
 }
 
 func ExampleSimplify_smullyan3() {
@@ -115,7 +115,7 @@ func ExampleSimplify_smullyan3() {
 
 	fmt.Println(Simplify(And(Deduction1, Deduction2)))
 	//Output:
-	// And(Not("A is a Sorcerer"), "B is a Sorcerer")
+	// A is not a Sorcerer & B is a Sorcerer
 }
 
 func ExampleSimplify_smullyan4() {
@@ -142,7 +142,7 @@ func ExampleSimplify_smullyan4() {
 	// The only thing that is certain is "True". There is not relevant information here
 
 	//Output:
-	// Lit(true)
+	// true
 }
 
 func ExampleSimplify_smullyan5() {
@@ -151,7 +151,7 @@ func ExampleSimplify_smullyan5() {
 
 	// 'g' is accused by 'c' of stealing a watch
 	G_is_a_knight := ID("G is a Knight")
-	S := ID("G stole the watch")
+	S := ID("G did stole the watch")
 
 	// 'g' said that he pretended that he didn't steal the watch
 	Fact1 := Eq(G_is_a_knight, Eq(G_is_a_knight, Not(S)))
@@ -169,8 +169,8 @@ func ExampleSimplify_smullyan5() {
 	fmt.Println(Deduction2)
 
 	//Output:
-	// Lit(false)
-	// Not("G stole the watch")
+	// false
+	// G did not stole the watch
 
 }
 
@@ -192,6 +192,6 @@ func ExampleSimplify_smullyan6() {
 
 	fmt.Println(Simplify(Fact1))
 	//Output:
-	// And(Not("A is a Knight"), "B is a Knight")
+	// A is not a Knight & B is a Knight
 
 }
