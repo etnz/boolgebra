@@ -29,6 +29,8 @@ const (
 	lparen            // '('
 	rparen            // ')'
 	identifier
+	litFalse
+	litTrue
 	lastKind // must always be the latest kind
 )
 
@@ -53,6 +55,8 @@ var tokens [lastKind]struct {
 	and:        {8, "and"},
 	not:        {9, "not"},
 	identifier: {11, "identifier"},
+	litFalse:   {12, "false"},
+	litTrue:    {12, "true"},
 }
 
 // String returns the tokenKind's name
@@ -137,6 +141,10 @@ func (p *parser) next() token {
 		switch lit {
 		case "not":
 			return token{pos, not, lit}
+		case "true":
+			return token{pos, litTrue, lit}
+		case "false":
+			return token{pos, litFalse, lit}
 		}
 		// anything else is an identifier.
 		return token{pos, identifier, lit}
@@ -231,6 +239,11 @@ func (p *parser) parse(rbp int) (Expr, error) {
 // head starts recursion based on 'tk'.
 func (l *parser) head(tk token) (Expr, error) {
 	switch tk.kind {
+	case litTrue:
+		return Lit(true), nil
+	case litFalse:
+		return Lit(false), nil
+
 	case identifier:
 		return ID(tk.lit), nil
 	case not:
@@ -323,7 +336,9 @@ func (p *parser) tail(left Expr, tk token) (Expr, error) {
 
 // Parse a boolean expression in src, and returns its Expr.
 //
-// Variable: any usual identifier <letter> (digit|letter)*
+// Literal: `true` or `false` are the two possible literal.
+//
+// Variable: any usual identifier `<letter> (digit|letter)*`
 //
 // an ID is made of one or more Variable.
 //
