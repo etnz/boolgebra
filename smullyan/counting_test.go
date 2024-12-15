@@ -33,7 +33,7 @@ func ExampleQuantified() {
 	fmt.Println(AtMost(2, A, B, C))
 
 	//Output:
-	// Or(And("A", "B", Not("C")), And(Not("A"), "B", "C"), And("A", Not("B"), "C"))
-	// Or(And("A", "B"), And("B", "C"), And("A", "C"))
-	// Or(Not("C"), Not("A"), Not("B"))
+	// A & B & not C | not A & B & C | A & not B & C
+	// A & B | B & C | A & C
+	// not C | not A | not B
 }

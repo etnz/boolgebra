@@ -163,6 +163,6 @@ func ExampleArt_Contest() {
 		And(P(Monica, aerograph), P(Monica, brush), P(Monica, spatula), P(Monica, sponge)),
 		result,
 	))
-	fmt.Printf("The answer is %v\n", answer)
+	fmt.Printf("The answer is %q\n", answer)
 	// Output: The answer is "Monica=aerograph"
 }

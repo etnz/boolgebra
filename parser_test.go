@@ -152,3 +152,55 @@ func TestSmullyan(t *testing.T) {
 		t.Errorf("invalid solution got %v want %v equ %v", res, want, cmp)
 	}
 }
+
+func TestFormat(t *testing.T) {
+	data := []struct {
+		src string
+	}{
+		{"a b c"},
+		{"a b c | c d e"},
+		{"a & b"},
+		{"a ^ b"},
+		{"a | b"},
+		{"a <=> b"},
+		{"a != b"},
+		{"a => b"},
+		// Composing ops
+		{"a & b ^ c"},
+		{"a & b | c"},
+		{"a & b <=> a & b"},
+		{"a & b != a & b"},
+		{"a & b => a & b"},
+		{"a & (b | c)"},
+
+		// not case
+		{"a not b c"},
+		{"a b not c"},
+		{"not a b c"},
+		{"not (a & b)"},
+
+		// lit
+		{"true"},
+		{"false"},
+		{"a & false"},
+	}
+
+	for _, td := range data {
+		t.Run(td.src, func(t *testing.T) {
+
+			want, err := Parse(td.src)
+			if err != nil {
+				t.Fatalf("parse error: %v", err)
+			}
+
+			got, err := Parse(want.String())
+			if err != nil {
+				t.Fatalf("parse error: %v", err)
+			}
+			if got.String() != want.String() {
+				t.Errorf("String(%q) error: got %v want %v", td.src, got, want)
+			}
+		})
+	}
+
+}
