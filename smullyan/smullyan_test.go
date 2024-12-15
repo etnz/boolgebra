@@ -180,7 +180,7 @@ func ExampleSimplify_smullyan6() {
 
 	// https://en.wikipedia.org/wiki/Knights_and_Knaves#Examples
 
-	// let's define three properties
+	// let's define two properties
 	A_is_a_knight := ID("A is a Knight")
 	B_is_a_knight := ID("B is a Knight")
 
