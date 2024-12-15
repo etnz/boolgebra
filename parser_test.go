@@ -21,6 +21,9 @@ func TestScan(t *testing.T) {
 		{"a => b", []token{{0, identifier, "a"}, {2, impl, "=>"}, {5, identifier, "b"}}},
 		{"a <=> b", []token{{0, identifier, "a"}, {2, eq, "<=>"}, {6, identifier, "b"}}},
 		{"a () b", []token{{0, identifier, "a"}, {2, lparen, "("}, {3, rparen, ")"}, {5, identifier, "b"}}},
+		//lit
+		{"true", []token{{0, litTrue, "true"}}},
+		{"false", []token{{0, litFalse, "false"}}},
 	}
 
 	for _, td := range data {
@@ -84,8 +87,12 @@ func TestParse(t *testing.T) {
 		{"a b not c", Not(ID("a b c"))},
 		{"not a b c", Not(ID("a b c"))},
 		{"not (a & b)", Not(And(a, b))},
-
 		//{"a (b c)", ID("a b c")},
+
+		// lit
+		{"true", Lit(true)},
+		{"false", Lit(false)},
+		{"a & false", And(a, Lit(false))},
 	}
 
 	for _, td := range data {
