@@ -87,6 +87,8 @@ func TestParse(t *testing.T) {
 		{"a b not c", Not(ID("a b c"))},
 		{"not a b c", Not(ID("a b c"))},
 		{"not (a & b)", Not(And(a, b))},
+		{"a & (b | c)", And(a, Or(b, c))},
+
 		//{"a (b c)", ID("a b c")},
 
 		// lit
