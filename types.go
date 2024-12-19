@@ -25,11 +25,16 @@ type (
 		String() string
 		// return the negation of receiver
 		Not() Expr
-		// Is return true if the Expr is literally equals to value
+		// Is return true if the Expr is literally equals to value.
 		Is(val bool) bool
+		// Terms return the number of Terms in this Expression.
 		Terms() int
+		// Term return the ith Term or nil.
 		Term(i int) Expr
+		// IDs return a set of all the IDs in this expression.
 		IDs() (ids map[string]struct{})
+		// ID return the value of the given ID.
+		ID(id string) (x Expr, positive bool)
 	}
 )
 
@@ -155,4 +160,20 @@ func (m minterm) IDs() (ids map[string]struct{}) {
 		ids[k] = struct{}{}
 	}
 	return
+}
+
+// ID return the ID value in this expression
+func (x expression) ID(id string) (expr Expr, positive bool) {
+	if len(x) == 1 {
+		return x[0].ID(id)
+	}
+	return nil, true
+}
+
+// ID return the ID value in this expression
+func (m minterm) ID(id string) (x Expr, positive bool) {
+	if val, exists := m[id]; exists {
+		return minterm{id: val}, val
+	}
+	return nil, true
 }
