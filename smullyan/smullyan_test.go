@@ -7,43 +7,78 @@ import (
 )
 
 // smullyan_test.go holds examples taken from Raymond Smullyan "Satan, Cantor and Infinity"
+// In the book,
+// a Knight is someone that always tells the truth,
+// a Knaves is someone that always tells a lie.
+//
+// In all the Smullyan examples it is important to understand that the logical translation of a sentence like
+//  'A say P' is that `A is a Knight <=> P`.
+//
 
-func ExampleSimplify_smullyan1() {
-	// A Knight is someone that always tells the truth.
-	// A Knaves is someone that always tells a lie.
+// ExampleSimplify_BothKnaves solves the [Both Knaves] problem.
+// [Both Knaves]: https://en.wikipedia.org/wiki/Knights_and_Knaves#Both_knaves
+func ExampleSimplify_BothKnaves() {
+	// Alice says, "We are both knaves”.
+	solution := `Reduce Alice is a Knight <=> Alice is not a Knight & Bob is not a Knight`
+	expression, _ := Parse(solution)
+	fmt.Println(expression)
+	// Output: Alice is not a Knight & Bob is a Knight
+}
 
-	// The hero meets three guys 'a','b', 'c', each one can be a Knight or a Knaves
-	// let's define three properties
-	A_is_a_knight := ID("A is a Knight")
-	B_is_a_knight := ID("B is a Knight")
-	C_is_a_knight := ID("C is a Knight")
+// ExampleSimplify_SameOfDifferentKinds solves the [Same of Different Kinds] problem.
+// [Same of Different Kinds]: https://en.wikipedia.org/wiki/Knights_and_Knaves#Same_or_different_kinds
+func ExampleSimplify_SameOfDifferentKinds() {
+	// Alice says, "We are the same kind," but Bob says, "We are of different kinds."
+	solution := `Reduce 
+		    Alice is a Knight <=> not (Alice is a Knight ^ Bob is a Knight) 
+		and Bob is a Knight <=> Alice is a Knight ^ Bob is a Knight`
+	expression, _ := Parse(solution)
+	fmt.Println(expression)
+	// Output: Alice is not a Knight & Bob is a Knight
+}
 
-	// Our hero asked 'a': "are 'b' and 'c' knights ?"
-	Q1 := And(B_is_a_knight, C_is_a_knight)
+// ExampleSimplify_GoodmanVariant solves the [Goodman Variant] problem.
+// [Goodman Variant]: https://en.wikipedia.org/wiki/Knights_and_Knaves#Goodman's_1931_variant
+func ExampleSimplify_GoodmanVariant() {
+	// In goodman Variant, Knights and Krave are replaced by Nobles and Hunters, we translated it to unify.
+	// Alice says either "I am a Knight" or "I am a Knave", we don't yet know which.
+	// Then Bob, in reply to a query, says "Alice said, 'I am a Knave'".
+	// After that, Bob says "Carol is a Knave".
+	// Then, Carol says "Alice is a Knight"
 
-	//'a' answered yes.
+	// Noone can ever say "I am a Knave", so the first hint is useless, but let's code it anyway.
 
-	// like always with Knights and Knaves,
-	// if 'a' is a knight, then Q1 is true obviouly,
-	// if not 'a' is a knight then Q1 is not true
-	//
-	//     A_is_a_knight     Q1
-	//     true              true
-	//     false             false
-	//
-	// therefore A_is_a_knight  ==   Q1
-	Fact1 := Eq(A_is_a_knight, Q1)
+	solution := `Reduce 
+	    Alice is a Knight <=> Alice is not a Knight | Alice is a Knight
+		and Bob is a Knight <=> (Alice is a Knight <=> Alice is not a Knight) 
+		and Bob is a Knight <=> Carol is not a Knight
+		and Carol is a Knight <=> Alice is a Knight
+		`
 
-	// but 'a' also said that 'b' was a Knaves:
-	Fact2 := Eq(A_is_a_knight, Not(B_is_a_knight))
+	expression, _ := Parse(solution)
+	fmt.Println(expression)
 
-	fmt.Println(Simplify(And(Fact1, Fact2)))
-	//Output:
-	// A is not a Knight & B is a Knight & C is not a Knight
+	// Output: Alice is a Knight & Bob is not a Knight & Carol is a Knight
+}
 
+func ExampleSimplify_ThreeKnaves() {
+
+	// Our hero asked Alice: "are Bob and Carol knights?"
+	// Alice answered "yes", but Alice also said that Bob was a Knaves
+
+	solution := `Reduce 
+	    Alice is a Knight <=> Bob is a Knight & Carol is a Knight
+	and Alice is a Knight <=> Bob is not a Knight
+	`
+	expression, _ := Parse(solution)
+	fmt.Println(expression)
+
+	//Output: Alice is not a Knight & Bob is a Knight & Carol is not a Knight
 }
 
 func ExampleSimplify_smullyan2() {
+	// this example cannot use the bool language, yet, as support for Exactly 1 is not available yet.
+
 	// A Knight is someone that always tells the truth.
 	// A Knaves is someone that always tells a lie.
 
@@ -79,8 +114,6 @@ func ExampleSimplify_smullyan2() {
 }
 
 func ExampleSimplify_smullyan3() {
-	// A Knight is someone that always tells the truth.
-	// A Knaves is someone that always tells a lie.
 
 	// The hero finds two guies 'a' and 'b'
 	A_is_a_knight := ID("A is a Knight")
@@ -143,55 +176,4 @@ func ExampleSimplify_smullyan4() {
 
 	//Output:
 	// true
-}
-
-func ExampleSimplify_smullyan5() {
-	// A Knight is someone that always tells the truth.
-	// A Knaves is someone that always tells a lie.
-
-	// 'g' is accused by 'c' of stealing a watch
-	G_is_a_knight := ID("G is a Knight")
-	S := ID("G did stole the watch")
-
-	// 'g' said that he pretended that he didn't steal the watch
-	Fact1 := Eq(G_is_a_knight, Eq(G_is_a_knight, Not(S)))
-
-	// 'c' asks a second question:
-	// did you pretend that you have stolen the watch ?
-	Q := Eq(G_is_a_knight, S)
-	Hypothesis1 := Eq(G_is_a_knight, Q)
-	Hypothesis2 := Eq(G_is_a_knight, Not(Q))
-	//
-	Deduction1 := Simplify(And(Fact1, Hypothesis1))
-	Deduction2 := Simplify(And(Fact1, Hypothesis2))
-
-	fmt.Println(Deduction1)
-	fmt.Println(Deduction2)
-
-	//Output:
-	// false
-	// G did not stole the watch
-
-}
-
-func ExampleSimplify_smullyan6() {
-	// A Knight is someone that always tells the truth.
-	// A Knaves is someone that always tells a lie.
-
-	// https://en.wikipedia.org/wiki/Knights_and_Knaves#Examples
-
-	// let's define two properties
-	A_is_a_knight := ID("A is a Knight")
-	B_is_a_knight := ID("B is a Knight")
-
-	// A says, "We are both knaves."
-	Assertion1 := And(Not(A_is_a_knight), Not(B_is_a_knight))
-
-	// like always with Knights and Knaves, what;s true is:
-	Fact1 := Eq(A_is_a_knight, Assertion1)
-
-	fmt.Println(Simplify(Fact1))
-	//Output:
-	// A is not a Knight & B is a Knight
-
 }

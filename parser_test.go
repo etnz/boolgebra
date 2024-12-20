@@ -8,22 +8,22 @@ func TestScan(t *testing.T) {
 		want []token
 	}{
 		{"", nil},
-		{"abc", []token{{0, identifier, "abc"}}},
-		{"a b", []token{{0, identifier, "a"}, {2, identifier, "b"}}},
+		{"abc", []token{{0, tkIdentifier, "abc"}}},
+		{"a b", []token{{0, tkIdentifier, "a"}, {2, tkIdentifier, "b"}}},
 
-		{"a and b", []token{{0, identifier, "a"}, {2, identifier, "and"}, {6, identifier, "b"}}},
-		{"a & b", []token{{0, identifier, "a"}, {2, and, "&"}, {4, identifier, "b"}}},
-		{"a | b", []token{{0, identifier, "a"}, {2, or, "|"}, {4, identifier, "b"}}},
-		{"a ^ b", []token{{0, identifier, "a"}, {2, xor, "^"}, {4, identifier, "b"}}},
-		{"a not b", []token{{0, identifier, "a"}, {2, not, "not"}, {6, identifier, "b"}}},
-		{"not a b", []token{{0, not, "not"}, {4, identifier, "a"}, {6, identifier, "b"}}},
-		{"a != b", []token{{0, identifier, "a"}, {2, neq, "!="}, {5, identifier, "b"}}},
-		{"a => b", []token{{0, identifier, "a"}, {2, impl, "=>"}, {5, identifier, "b"}}},
-		{"a <=> b", []token{{0, identifier, "a"}, {2, eq, "<=>"}, {6, identifier, "b"}}},
-		{"a () b", []token{{0, identifier, "a"}, {2, lparen, "("}, {3, rparen, ")"}, {5, identifier, "b"}}},
+		{"a and b", []token{{0, tkIdentifier, "a"}, {2, tkLongAnd, "and"}, {6, tkIdentifier, "b"}}},
+		{"a & b", []token{{0, tkIdentifier, "a"}, {2, tkAnd, "&"}, {4, tkIdentifier, "b"}}},
+		{"a | b", []token{{0, tkIdentifier, "a"}, {2, tkOr, "|"}, {4, tkIdentifier, "b"}}},
+		{"a ^ b", []token{{0, tkIdentifier, "a"}, {2, tkXor, "^"}, {4, tkIdentifier, "b"}}},
+		{"a not b", []token{{0, tkIdentifier, "a"}, {2, tkNot, "not"}, {6, tkIdentifier, "b"}}},
+		{"not a b", []token{{0, tkNot, "not"}, {4, tkIdentifier, "a"}, {6, tkIdentifier, "b"}}},
+		{"a != b", []token{{0, tkIdentifier, "a"}, {2, tkNeq, "!="}, {5, tkIdentifier, "b"}}},
+		{"a => b", []token{{0, tkIdentifier, "a"}, {2, tkImpl, "=>"}, {5, tkIdentifier, "b"}}},
+		{"a <=> b", []token{{0, tkIdentifier, "a"}, {2, tkEq, "<=>"}, {6, tkIdentifier, "b"}}},
+		{"a () b", []token{{0, tkIdentifier, "a"}, {2, tkLParen, "("}, {3, tkRParen, ")"}, {5, tkIdentifier, "b"}}},
 		//lit
-		{"true", []token{{0, litTrue, "true"}}},
-		{"false", []token{{0, litFalse, "false"}}},
+		{"true", []token{{0, tkTrue, "true"}}},
+		{"false", []token{{0, tkFalse, "false"}}},
 	}
 
 	for _, td := range data {
@@ -33,7 +33,7 @@ func TestScan(t *testing.T) {
 			for {
 				next := s.peek()
 				tk := s.next()
-				if tk.kind == eof {
+				if tk.kind == tkEOF {
 					break
 				}
 				got = append(got, tk)
@@ -87,9 +87,17 @@ func TestParse(t *testing.T) {
 		{"a b not c", Not(ID("a b c"))},
 		{"not a b c", Not(ID("a b c"))},
 		{"not (a & b)", Not(And(a, b))},
+		{"not a & b", And(Not(a), b)},
 		{"a & (b | c)", And(a, Or(b, c))},
 
-		//{"a (b c)", ID("a b c")},
+		// command call (ID is the first builtin function)
+		{"Reduce a => a", Lit(true)},
+		{"Reduce (a => a)", Lit(true)},
+		{"(Reduce a => a) & b", b},
+
+		{"Ascertain a | b", Lit(true)},
+		{"Ascertain a&b | a&c", a},
+		//{"Exactly 1 in  a&b , a&c", a},
 
 		// lit
 		{"true", Lit(true)},

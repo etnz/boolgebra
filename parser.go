@@ -17,20 +17,24 @@ import (
 type tokenKind int
 
 const (
-	illegal tokenKind = iota
-	eof               // end of file
-	and               // '&'
-	or                // '|'
-	xor               // '^'
-	not               // 'not'
-	eq                // '<=>' logically Equivalent
-	neq               // '!=' Not Equal
-	impl              // '=>' Imply, or if..then statement
-	lparen            // '('
-	rparen            // ')'
-	identifier
-	litFalse
-	litTrue
+	tkIllegal    tokenKind = iota
+	tkEOF                  // end of file
+	tkAnd                  // '&'
+	tkLongAnd              // 'and'
+	tkOr                   // '|'
+	tkXor                  // '^'
+	tkNot                  // 'not'
+	tkEq                   // '<=>' logically Equivalent
+	tkNeq                  // '!=' Not Equal
+	tkImpl                 // '=>' Imply, or if..then statement
+	tkLParen               // '('
+	tkRParen               // ')'
+	tkIdentifier           //  letter, (letter | digit)*
+	tkFalse                // 'false'
+	tkTrue                 // 'true'
+	tkReduce               // 'Reduce'
+	tkAscertain            // 'Ascertain'
+
 	lastKind // must always be the latest kind
 )
 
@@ -43,20 +47,23 @@ var tokens [lastKind]struct {
 	name string
 }{
 	//token		prec, name
-	illegal:    {0, "illegal"},
-	eof:        {0, "eof"},
-	lparen:     {1, "lparen"},
-	rparen:     {1, "rparen"},
-	eq:         {5, "eq"},
-	neq:        {5, "neq"},
-	impl:       {5, "impl"},
-	or:         {6, "or"},
-	xor:        {7, "xor"},
-	and:        {8, "and"},
-	not:        {9, "not"},
-	identifier: {11, "identifier"},
-	litFalse:   {12, "false"},
-	litTrue:    {12, "true"},
+	tkIllegal:    {0, "illegal"},
+	tkEOF:        {0, "eof"},
+	tkLParen:     {1, "lparen"},
+	tkRParen:     {1, "rparen"},
+	tkReduce:     {2, "Reduce"},
+	tkAscertain:  {2, "Ascertain"},
+	tkLongAnd:    {3, "and"},
+	tkEq:         {5, "eq"},
+	tkNeq:        {5, "neq"},
+	tkImpl:       {5, "impl"},
+	tkOr:         {6, "or"},
+	tkXor:        {7, "xor"},
+	tkAnd:        {8, "&"},
+	tkNot:        {9, "not"},
+	tkIdentifier: {11, "identifier"},
+	tkFalse:      {12, "false"},
+	tkTrue:       {12, "true"},
 }
 
 // String returns the tokenKind's name
@@ -71,7 +78,7 @@ type token struct {
 
 // String returns a debug view for token.
 func (t token) String() string {
-	return fmt.Sprintf("%s(%v) %q", t.kind, t.pos, t.lit)
+	return fmt.Sprintf("%s:%v %q", t.kind, t.pos, t.lit)
 }
 
 // precedence returns the token precedence for this token.
@@ -134,38 +141,44 @@ func (p *parser) next() token {
 
 	switch {
 	case ch == rune(-1):
-		return token{pos, eof, ""}
+		return token{pos, tkEOF, ""}
 	case isLetter(ch):
 		lit := p.scanf(isIdentifierChar)
 		// before considering it an identifier check against reserved words
 		switch lit {
-		case "not":
-			return token{pos, not, lit}
-		case "true":
-			return token{pos, litTrue, lit}
-		case "false":
-			return token{pos, litFalse, lit}
+		case tkReduce.String():
+			return token{pos, tkReduce, lit}
+		case tkAscertain.String():
+			return token{pos, tkAscertain, lit}
+		case tkLongAnd.String():
+			return token{pos, tkLongAnd, lit}
+		case tkNot.String():
+			return token{pos, tkNot, lit}
+		case tkTrue.String():
+			return token{pos, tkTrue, lit}
+		case tkFalse.String():
+			return token{pos, tkFalse, lit}
 		}
 		// anything else is an identifier.
-		return token{pos, identifier, lit}
+		return token{pos, tkIdentifier, lit}
 	default:
 		// all cases based on ch value
 		switch ch {
 		case '(':
 			p.nextChar()
-			return token{pos, lparen, "("}
+			return token{pos, tkLParen, "("}
 		case ')':
 			p.nextChar()
-			return token{pos, rparen, ")"}
+			return token{pos, tkRParen, ")"}
 		case '&':
 			p.nextChar()
-			return token{pos, and, "&"}
+			return token{pos, tkAnd, "&"}
 		case '|':
 			p.nextChar()
-			return token{pos, or, "|"}
+			return token{pos, tkOr, "|"}
 		case '^':
 			p.nextChar()
-			return token{pos, xor, "^"}
+			return token{pos, tkXor, "^"}
 
 		// Dual char tokens.
 		case '!': // Read the "!=" token
@@ -173,18 +186,18 @@ func (p *parser) next() token {
 			p.nextChar()
 			if p.ch == '=' {
 				p.nextChar()
-				return token{pos, neq, "!="}
+				return token{pos, tkNeq, "!="}
 			} else {
-				return token{pos, illegal, fmt.Sprintf("expecting '=' found %q", p.ch)}
+				return token{pos, tkIllegal, fmt.Sprintf("expecting '=' found %q", p.ch)}
 			}
 		case '=': // Read the "=>" token
 			pos := p.beg
 			p.nextChar()
 			if p.ch == '>' {
 				p.nextChar()
-				return token{pos, impl, "=>"}
+				return token{pos, tkImpl, "=>"}
 			} else {
-				return token{pos, illegal, fmt.Sprintf("expecting '>' found %q", p.ch)}
+				return token{pos, tkIllegal, fmt.Sprintf("expecting '>' found %q", p.ch)}
 			}
 		// 3-char tokens.
 		case '<': // Read the "<=>" token
@@ -194,16 +207,16 @@ func (p *parser) next() token {
 				p.nextChar()
 				if p.ch == '>' {
 					p.nextChar()
-					return token{pos, eq, "<=>"}
+					return token{pos, tkEq, "<=>"}
 				} else {
-					return token{pos, illegal, fmt.Sprintf("expecting '>' found %q", p.ch)}
+					return token{pos, tkIllegal, fmt.Sprintf("expecting '>' found %q", p.ch)}
 				}
 			} else {
-				return token{pos, illegal, fmt.Sprintf("expecting '=' found %q", p.ch)}
+				return token{pos, tkIllegal, fmt.Sprintf("expecting '=' found %q", p.ch)}
 			}
 
 		}
-		return token{pos, illegal, fmt.Sprintf("unknown character %q", p.ch)}
+		return token{pos, tkIllegal, fmt.Sprintf("unknown character %q", p.ch)}
 	}
 }
 
@@ -239,28 +252,45 @@ func (p *parser) parse(rbp int) (Expr, error) {
 // head starts recursion based on 'tk'.
 func (l *parser) head(tk token) (Expr, error) {
 	switch tk.kind {
-	case litTrue:
+	case tkTrue:
 		return Lit(true), nil
-	case litFalse:
+
+	case tkFalse:
 		return Lit(false), nil
 
-	case identifier:
+	case tkReduce:
+		expr, err := l.parse(tk.precedence())
+		if err != nil {
+			return nil, err
+		}
+		return Simplify(expr), nil
+
+	case tkAscertain:
+		expr, err := l.parse(tk.precedence())
+		if err != nil {
+			return nil, err
+		}
+		expr, _ = Factor(expr)
+		return expr, nil
+
+	case tkIdentifier:
 		return ID(tk.lit), nil
-	case not:
+
+	case tkNot:
 		expr, err := l.parse(tk.precedence())
 		if err != nil {
 			return nil, err
 		}
 		return Not(expr), nil
 
-	case lparen:
+	case tkLParen:
 		expr, err := l.parse(tk.precedence())
 		if err != nil {
 			return nil, err
 		}
 		//and consume the rparen
-		if r := l.next(); r.kind != rparen {
-			return nil, fmt.Errorf("invalid token %s expecting %q", r, rparen)
+		if r := l.next(); r.kind != tkRParen {
+			return nil, fmt.Errorf("invalid token %s expecting %q", r, tkRParen)
 		}
 		return expr, nil
 	default:
@@ -286,7 +316,7 @@ func readID(left Expr) (id string, val, ok bool) {
 func (p *parser) tail(left Expr, tk token) (Expr, error) {
 	switch tk.kind {
 
-	case identifier:
+	case tkIdentifier:
 		// left MUST have been an ID
 		id, val, ok := readID(left)
 		if !ok {
@@ -298,7 +328,7 @@ func (p *parser) tail(left Expr, tk token) (Expr, error) {
 		// TODO: we are formating ID as a space separated list of identifier. This should be better formalized.
 		return minterm{id + " " + tk.lit: val}, nil
 
-	case not:
+	case tkNot:
 		// left MUST have been an ID
 		id, val, ok := readID(left)
 		if !ok {
@@ -306,24 +336,24 @@ func (p *parser) tail(left Expr, tk token) (Expr, error) {
 		}
 		return minterm{id: !val}, nil
 
-	case or, and, xor, eq, neq, impl:
+	case tkOr, tkAnd, tkXor, tkEq, tkNeq, tkImpl, tkLongAnd:
 		right, err := p.parse(tk.precedence())
 		if err != nil {
 			return nil, err
 		}
 		var res Expr
 		switch tk.kind {
-		case or:
+		case tkOr:
 			res = Or(left, right)
-		case and:
+		case tkAnd, tkLongAnd:
 			res = And(left, right)
-		case xor:
+		case tkXor:
 			res = Xor(left, right)
-		case eq:
+		case tkEq:
 			res = Eq(left, right)
-		case neq:
+		case tkNeq:
 			res = Neq(left, right)
-		case impl:
+		case tkImpl:
 			res = Impl(left, right)
 		default:
 			panic("unexpected kind")
@@ -338,29 +368,35 @@ func (p *parser) tail(left Expr, tk token) (Expr, error) {
 //
 // Literal: `true` or `false` are the two possible literal.
 //
-// Variable: any usual identifier `<letter> (digit|letter)*`
+// Variables: any usual identifier `<letter> (digit|letter)*`
 //
-// an ID is made of one or more Variable.
+// an ID is made of one or more Variables.
 //
-// 'not' can be inserted in a list of variable to form the negation of an ID:
-// e.g. `John is not Knight` is equivalent to Not(ID("John is Knight")).
-// Note that the 'not' can be placed anywhere in the ID, every occurrence toggles the boolean value. So that
-// e.g. in `not John is not Knight` the 'not' effect are canceled.
-// 'not' can be used as a prefix operator `not (a&b)` is equivalent to `Not(And(a,b))`
+// 'not' can be inserted in a list of variables to form the negation of an ID:
+// e.g. `John is not a Knight` is equivalent to `not John is a Knight` or `John not is a Knight`.
 //
-// The following binary operators in increasing binding power (precedence)
+// Note that the 'not' can be placed anywhere in the ID.
+// 'not' can also be used as a prefix operator `not a & b`.
 //
-//	'<=>' logically equivalent
-//	'!='  not logically equivalent
-//	'=>' imply.
-//	'|' or
-//	'^' xor
-//	'&' and
+// The following operators in increasing binding power (precedence)
+//
+//   - 'Reduce' reduce expression to a minimal form using [prime implicant]
+//   - Ascertain factor an expression x in two implicant expressions a,b so that `x <=> a and b` and return 'a', that can be considered the
+//     part of 'x' that is certain.
+//   - 'and' long and, same operation as '&' but with low binding power.
+//   - '<=>' logically equivalent
+//   - '!='  not logically equivalent, same operation as '^' but with low binding power
+//   - '=>' imply.
+//   - '|' or
+//   - '^' xor
+//   - '&' and
+//   - 'not' not
 //
 // So that `a | b & c` is equivalent to `a | (b&c)`
 //
-// Note as a mnemonic that the shorter the operator the highest precedence it has. For that matter, '!=' and '^' are
-// the same operation, just at different priority level.
+// Note: '!=' and '^' are the same operation, just with different precedence.
+//
+// [prime implicant]: https://en.wikipedia.org/wiki/Prime_implicant
 func Parse(src string) (Expr, error) {
 	return newParser([]byte(src)).parse(0)
 }
