@@ -25,14 +25,14 @@ Also, if it is raining, then Alice told the truth, then she must be a knight. `i
 Therefore, when you know for sure that "Alice says it is raining" you can write for sure that `Alice is a knight <=> it is raining`.
 
 Solving Smullyan's puzzles with boolgebra is all about writing *correctly* what you know for certain in the puzzle.
-In this exmaple, knowing for sure that Alice said "We are both knaves”, you can write, for sure 
-too that  `Alice is a knight <=> Alice is not a knight & Bob is not a knight`
 
-In boolgebra:
+back to our problem, knowing for sure that Alice said "We are both knaves”, you can write, for sure 
+that `Alice is a knight <=> Alice is not a knight & Bob is not a knight`
+
+using boolgebra you can compute the solution by just doing:
 
 ```go
-    solution := `Alice is a Knight <=> Alice is not a Knight & Bob is not a Knight`
-	expression, _ := Parse(solution)
-	fmt.Println(Simplify(expression))
+	problem, _ := Parse(`Alice is a Knight <=> Alice is not a Knight & Bob is not a Knight`)
+	fmt.Println(Simplify(problem))
 	// Output: Alice is not a Knight & Bob is a Knight
 ```
