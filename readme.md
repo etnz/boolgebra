@@ -1,20 +1,38 @@
-#boolgebra [![Travis](https://travis-ci.org/etnz/boolgebra.svg?branch=master)](https://travis-ci.org/etnz/boolgebra) [![GoDoc](https://godoc.org/github.com/etnz/boolgebra?status.svg)](https://godoc.org/github.com/etnz/boolgebra)
+[![GoDoc](https://godoc.org/github.com/etnz/boolgebra?status.svg)](https://godoc.org/github.com/etnz/boolgebra)
+
 
 Package boolgebra provide basic boolean algebra operations.
 
-It is possible to compare, expand, simplify boolean expressions
+It is possible to compare, expand, reduce, parse boolean expressions.
 
-This is still in development ( see the dev branch)
+It makes it possible to resolve logic puzzles, like Smullyan's, or logic grid.
 
-#boolgebra
+Because I cannot solve those puzzles without trying to get the computer doing it for me.
 
+Let's solve this Smullyan's [problem](https://en.wikipedia.org/wiki/Knights_and_Knaves#Both_knaves):
 
-To use the package:
+Alice and Bob are residents of the island of knights and knaves, where knights always tell the truth and 
+knaves always tell a lie.
 
-    go get github.com/etnz/boolgebra
+Alice says, "We are both knaves”.
 
+Can you tell who is a knight, and who is knave?
 
-# Still on the workbench
+In the island of knights and knaves, when you know for sure that "Alice says it is raining"
+you cannot tell for sure if it rains, but you can be certain that if Alice is a knight, then she is telling the truth
+then it is raining, therefore `Alice is knight => it is raining`. 
+Also, if it is raining, then Alice told the truth, then she must be a knight. `it is raining => Alice is a knight`. 
+Therefore, when you know for sure that "Alice says it is raining" you can write for sure that `Alice is a knight <=> it is raining`.
 
-- simplify even more
-- high level logic functions
+Solving Smullyan's puzzles with boolgebra is all about writing *correctly* what you know for certain in the puzzle.
+In this exmaple, knowing for sure that Alice said "We are both knaves”, you can write, for sure 
+too that  `Alice is a knight <=> Alice is not a knight & Bob is not a knight`
+
+In boolgebra:
+
+```go
+    solution := `Alice is a Knight <=> Alice is not a Knight & Bob is not a Knight`
+	expression, _ := Parse(solution)
+	fmt.Println(Simplify(expression))
+	// Output: Alice is not a Knight & Bob is a Knight
+```
