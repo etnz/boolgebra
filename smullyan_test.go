@@ -1,9 +1,7 @@
-package smullyan
+package boolgebra
 
 import (
 	"fmt"
-
-	. "github.com/etnz/boolgebra"
 )
 
 // smullyan_test.go holds examples taken from Raymond Smullyan "Satan, Cantor and Infinity"
