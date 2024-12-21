@@ -94,6 +94,8 @@ func TestParse(t *testing.T) {
 		{"Reduce a => a", Lit(true)},
 		{"Reduce (a => a)", Lit(true)},
 		{"(Reduce a => a) & b", b},
+		{"Reduce a => b and b => a", Eq(a,b) },
+		
 
 		{"Ascertain a | b", Lit(true)},
 		{"Ascertain a&b | a&c", a},
