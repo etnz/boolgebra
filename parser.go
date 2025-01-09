@@ -20,6 +20,7 @@ const (
 	tkIllegal    tokenKind = iota
 	tkEOF                  // end of file
 	tkAnd                  // '&'
+	tkLongOr               // 'or'
 	tkLongAnd              // 'and'
 	tkOr                   // '|'
 	tkXor                  // '^'
@@ -53,7 +54,8 @@ var tokens [lastKind]struct {
 	tkRParen:     {1, "rparen"},
 	tkReduce:     {2, "Reduce"},
 	tkAscertain:  {2, "Ascertain"},
-	tkLongAnd:    {3, "and"},
+	tkLongOr:     {3, "or"},
+	tkLongAnd:    {4, "and"},
 	tkEq:         {5, "eq"},
 	tkNeq:        {5, "neq"},
 	tkImpl:       {5, "impl"},
@@ -150,6 +152,8 @@ func (p *parser) next() token {
 			return token{pos, tkReduce, lit}
 		case tkAscertain.String():
 			return token{pos, tkAscertain, lit}
+		case tkLongOr.String():
+			return token{pos, tkLongOr, lit}
 		case tkLongAnd.String():
 			return token{pos, tkLongAnd, lit}
 		case tkNot.String():
@@ -336,14 +340,14 @@ func (p *parser) tail(left Expr, tk token) (Expr, error) {
 		}
 		return minterm{id: !val}, nil
 
-	case tkOr, tkAnd, tkXor, tkEq, tkNeq, tkImpl, tkLongAnd:
+	case tkOr, tkAnd, tkXor, tkEq, tkNeq, tkImpl, tkLongOr, tkLongAnd:
 		right, err := p.parse(tk.precedence())
 		if err != nil {
 			return nil, err
 		}
 		var res Expr
 		switch tk.kind {
-		case tkOr:
+		case tkOr, tkLongOr:
 			res = Or(left, right)
 		case tkAnd, tkLongAnd:
 			res = And(left, right)
@@ -383,6 +387,7 @@ func (p *parser) tail(left Expr, tk token) (Expr, error) {
 //   - 'Reduce' reduce expression to a minimal form using [prime implicant]
 //   - Ascertain factor an expression x in two implicant expressions a,b so that `x <=> a and b` and return 'a', that can be considered the
 //     part of 'x' that is certain.
+//   - 'or' long or, same operation as '|' but with low binding power.
 //   - 'and' long and, same operation as '&' but with low binding power.
 //   - '<=>' logically equivalent
 //   - '!='  not logically equivalent, same operation as '^' but with low binding power
