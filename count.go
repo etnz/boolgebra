@@ -22,16 +22,20 @@ func AtLeast(n int, terms ...Expr) Expr {
 	}
 
 	expr := Lit(false) // default for Or
-	// Always start with the identity
-	p := permute.New(n)
 	// loop over all n-subset.
-	for ok := true; ok; ok = nextsubset(p, len(terms)) {
-		res := make([]Expr, 0, len(p))
-		for _, i := range p {
-			res = append(res, terms[i])
-		}
+	for res := range permute.Combinations(n, terms) {
 		expr = Or(expr, And(res...))
 	}
+
+	// // Always start with the identity
+	// p := permute.New(n)
+	// for ok := true; ok; ok = nextsubset(p, len(terms)) {
+	// 	res := make([]Expr, 0, len(p))
+	// 	for _, i := range p {
+	// 		res = append(res, terms[i])
+	// 	}
+	// 	expr = Or(expr, And(res...))
+	// }
 	return expr
 }
 
@@ -57,6 +61,6 @@ func Exactly(n int, terms ...Expr) Expr {
 	return And(AtLeast(n, terms...), AtMost(n, terms...))
 }
 
-func nextsubset(p []int, n int) bool {
-	return permute.SubsetRevolvingDoorNext(p, n, &[2]int{0, 0})
-}
+// func nextsubset(p []int, n int) bool {
+// 	return permute.SubsetRevolvingDoorNext(p, n, &[2]int{0, 0})
+// }
